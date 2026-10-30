@@ -19,7 +19,7 @@ Ziel: Steuerung der Dyness Junior Box maximal intelligent und, wo möglich, **oh
 - Optional: Firebase-Projekt `dyness-ems-app-f73b2` als Laufzeit-Konfigurationsquelle auswerten.
 
 ### Phase 3 — Lokal (Ent-Clouden) — zwei Kandidaten
-1. **Dylink-Lokal-Finder**: Die App findet den Collector beim WLAN-Setup lokal (UDP-Broadcast). Wenn der Collector auch im Normalbetrieb auf den Finder antwortet → lokaler Kanal ohne Router-Eingriff. Nächster Schritt: Broadcast-Format aus `libapp.so`-Strings/Disassembly extrahieren, Probe senden.
+1. **Dylink-Lokal-Finder — ✅ VERWORFEN (gemessen):** Die App-Kommandos sind WIFIKIT-214028/e-Linter (siehe APK-Analyse). Collector im LAN identifiziert (IP des Moduls, MAC konsekutiv zum BLE-Chip), aber `WIFIKIT-214028-READ`/`AT+SERCH` (UDP 48899/8899), TCP-Scan (~2.000 Ports) und mDNS: **keine Antwort, keine offenen Ports** → der Logger schließt den lokalen AT-Zugang im Normalbetrieb (nur Provisionierungsmodus). Referenz-Implementierung der Protokollfamilie: `kbialek/deye-inverter-mqtt`.
 2. **DNS-MITM**: Eigener Resolver (AdGuard Home) + MQTT-Broker (mosquitto) auf dem HA-Raspi; nur `euiot.dyness.com` auf den Pi umlenken (FritzBox-Router-DNS). Da Port 1883 unverschlüsselt erreichbar ist: gute Chance auf Klartext-Protokoll. Braucht User-Grünlicht (Router-Eingriff).
 
 ### Phase 3b — BLE (bewertet: vorerst Sackgasse)
