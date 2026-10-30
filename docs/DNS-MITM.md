@@ -32,9 +32,19 @@ Ziel: sehen, welche DNS-Adressen die Box tatsächlich anfragt — ohne schon umz
 
 ## Teil B — Ablenken: Collector auf den lokalen Broker umleiten (10–15 min)
 
-1. **Add-on „Mosquitto broker“ installieren** (HA-Add-on-Store) → Konfiguration öffnen:
-   - `anonymous: true` (nur für den Test; wir sind im LAN) — oder gleich einen `logins`-Eintrag anlegen.
-   - Starten. Im Add-on-Log erscheinen Verbindungen.
+1. **Add-on „Mosquitto broker“ — ✗ GEEIGNET (Fallstrick): Seit 2026 unterstützt das HA-Add-on KEINE anonymen Verbindungen** („This app does not support anonymous logins; `allow_anonymous true` nor any anonymous ACLs will not work“ — Option `anonymous` wird beim Speichern entfernt). Die Box loggt sich mit unbekannten Dylink-Credentials ein → Add-on unbrauchbar fürs Abhören.
+   **Stattdessen: eigenständiger Mosquitto auf einem immer-an-Host** (Beispiel: MagicMirror-Raspi, `ssh mm`, Debian):
+   ```bash
+   sudo apt-get install -y mosquitto mosquitto-clients
+   sudo tee /etc/mosquitto/mosquitto.conf >/dev/null <<'CONF'
+   listener 1883 0.0.0.0
+   allow_anonymous true
+   log_dest stdout
+   log_type all
+   CONF
+   sudo systemctl enable --now mosquitto
+   ```
+   Stand 2026-10-30: Broker läuft auf **192.168.178.146:1883**, Anon-Zugang von extern verifiziert (paho rc=0).
 2. **In AdGuard Home eine Umschreib-Regel eintragen:**
    - Einstellungen → **DNS-Umschreibungen** → „Neue Umschreibung“:
      - **Domain: `logger.dyness.com`** (gemessen am 2026-10-30 im Query-Log; NICHT euiot! — die Box fragt logger an)
