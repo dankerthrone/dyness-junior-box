@@ -1,0 +1,11 @@
+# lokal, nie ins Repo
+config.json
+out/
+*.log
+
+# Analyse-Artefakte (groß / privat)
+*.xapk
+xapk/
+split/
+findings/
+resources.arsc
