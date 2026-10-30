@@ -41,7 +41,7 @@ Ziel: sehen, welche DNS-Adressen die Box tatsächlich anfragt — ohne schon umz
      - Antwort: `<HA-IP>` (die IP des Pi, z. B. 192.168.178.126) → Speichern.
    - Fundnotiz: `logger.dyness.com` läuft bei Aliyun (EU), Port **1883 offen** (plaintext-MQTT erreichbar), `euiot.dyness.com` teilt sich dieselbe Backend-Infrastruktur, ist aber der App-Kanal.
    - Zusatzbefund: Der Collector fragt außerdem `cloud.raymoniot.com` an (Aliyun-China, HTTP/nginx, kein MQTT) — vermutlich OTA/Config der „Raymon-IoT“-Plattform (hinter „Dylink“). Für die MQTT-Beobachtung reicht die eine Rewrite-Regel.
-   - **WICHTIG (UI-Falle):** Die Umschreibung gehört in die Liste **„DNS-Umschreibungen“ (Rewrites)** unter Einstellungen → DNS-Einstellungen — **nicht** in das Freitextfeld „Upstream DNS“ (das ist nur, wohin AdGuard normale Anfragen weiterreicht, z. B. `1.1.1.1:53`).
+   - **WICHTIG (UI-Falle, erfrischt 2026-10-30):** Im **modernen AdGuard-UI** liegen DNS-Rewrites unter dem Tab **„Filter“** (Button **„Add DNS rewrite“**) — NICHT unter Einstellungen → DNS-Einstellungen und NICHT im Freitextfeld „Upstream DNS“ (das ist nur, wohin AdGuard normale Anfragen weiterreicht, z. B. `1.1.1.1:53`). Ältere UIs führen sie unter Einstellungen → DNS-Einstellungen als „DNS-Umschreibungen“.
 3. **Box erneut neu starten** (Strom weg ~10 s, an). 2–5 Min warten.
 4. **Beobachten:**
    - Mosquitto-Add-on → **Log**: Taucht eine Verbindung vom Collector auf (CONNECT/PINGREQ/PUBLISH)?
