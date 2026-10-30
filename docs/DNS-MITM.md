@@ -37,8 +37,9 @@ Ziel: sehen, welche DNS-Adressen die Box tatsächlich anfragt — ohne schon umz
    - Starten. Im Add-on-Log erscheinen Verbindungen.
 2. **In AdGuard Home eine Umschreib-Regel eintragen:**
    - Einstellungen → **DNS-Umschreibungen** → „Neue Umschreibung“:
-     - Domain: `euiot.dyness.com` (bzw. der in Teil A gefundene Hostname; bei mehreren: gleiche Regel je Host)
-     - Antwort: `<HA-IP>` (die IP des Pi) → Speichern.
+     - **Domain: `logger.dyness.com`** (gemessen am 2026-10-30 im Query-Log; NICHT euiot! — die Box fragt logger an)
+     - Antwort: `<HA-IP>` (die IP des Pi, z. B. 192.168.178.126) → Speichern.
+   - Fundnotiz: `logger.dyness.com` läuft bei Aliyun (EU), Port **1883 offen** (plaintext-MQTT erreichbar), `euiot.dyness.com` teilt sich dieselbe Backend-Infrastruktur, ist aber der App-Kanal.
 3. **Box erneut neu starten** (Strom weg ~10 s, an). 2–5 Min warten.
 4. **Beobachten:**
    - Mosquitto-Add-on → **Log**: Taucht eine Verbindung vom Collector auf (CONNECT/PINGREQ/PUBLISH)?
