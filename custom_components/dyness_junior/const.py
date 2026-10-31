@@ -9,8 +9,6 @@ CONF_LISTEN_IP = "listen_ip"
 
 DEFAULT_PORT = 5005
 DEFAULT_LISTEN_IP = "0.0.0.0"
-# Beispiel-S/N des Collectors (ohne -BMS-Suffix), vorbelegt für die Config-Flow.
-DEFAULT_SERIAL = "R07E8546681A0121"
 
 # Dylink-Protokoll
 DLINK_BANNER = (

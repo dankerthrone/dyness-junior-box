@@ -11,7 +11,6 @@ from .const import (
     CONF_SERIAL,
     DEFAULT_LISTEN_IP,
     DEFAULT_PORT,
-    DEFAULT_SERIAL,
     DOMAIN,
 )
 
@@ -41,11 +40,10 @@ class DynessJuniorConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required(CONF_SERIAL, default=DEFAULT_SERIAL): str,
+                    vol.Required(CONF_SERIAL): str,
                     vol.Optional(CONF_PORT, default=DEFAULT_PORT): int,
                     vol.Optional(CONF_LISTEN_IP, default=DEFAULT_LISTEN_IP): str,
                 }
             ),
-            description_placeholders={"serial": DEFAULT_SERIAL},
             errors=errors,
         )
