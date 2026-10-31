@@ -77,6 +77,38 @@ Sicherheit:
 - Die Box hat **kein Read-back**: Welcher Modus gerade aktiv ist, steht
   nirgends. Sollwert selbst merken (oder in eine HA-Notiz kopieren).
 
+## Steuern ohne Dashboard (manuell, aktuelles HA-UI)
+
+Zum Ausprobieren braucht es kein Dashboard — der Befehl geht auch direkt:
+
+1. **Einstellungen → System → Tools** (in älteren HA-Versionen hieß der Ort
+   „Entwickler-Tools“; falls er in der Seitenleiste fehlt: eigenes Profil →
+   „Erweiterter Modus“ einschalten).
+2. Reiter **„Actions“** (ältere Versionen: „Dienste“) — **nicht den Reiter
+   „Events“!** Events sind Durchsagen an alle, kein Befehl an die Box.
+3. Dienst `dyness_junior.set_workmode` wählen. Ab **v0.1.2** zeigt HA dafür
+   Felder an:
+   - **mode** (Dropdown): `16` Lastpriorität, `17` Batteriepriorität, `255` Shutdown
+   - **power** (Zahlenfeld): **150–800** — alles darunter lehnt HA mit
+     Fehlermeldung ab (Akku-Gefahr!)
+   - `set_dod`: einziges Feld **dod**, 0–100 (z. B. 95)
+4. „Aktion ausführen“ → Ergebnis im HA-Log (Einstellungen → System →
+   Protokolle): *„set_workmode … gesendet“* oder *„nicht gesendet (Box
+   offline?)“*.
+
+YAML-Modus (falls gewünscht) — wichtig, in **Block-Schreibweise**:
+
+```yaml
+service: dyness_junior.set_workmode
+data:
+  mode: 16
+  power: 200
+```
+
+⚠️ **Komma-Falle:** Die Kurzschreibweise `data: {mode:16 power:200}` ist
+ungültiges YAML (fehlendes Komma) — HA liest daraus einen einzigen kaputten
+Eintrag und der Dienst lehnt ab. Immer Block-Schreibweise verwenden.
+
 ## Verbindung prüfen (wenn „Verbindung“ aus ist)
 
 1. **AdGuard → Query Log:** `logger.dyness.com` muss auf die HA-IP (.126)
