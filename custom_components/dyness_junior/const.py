@@ -36,3 +36,4 @@ MODE_SHUTDOWN = 255
 SENSOR_CONNECTION = "Verbindung"
 SENSOR_FIRMWARE = "Firmware"
 SENSOR_SOC = "SOC (experimentell)"
+SENSOR_SOH = "SOH (experimentell)"

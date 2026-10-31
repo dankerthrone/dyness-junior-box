@@ -58,5 +58,10 @@ def parse_registers(payload: bytes) -> dict[int, int]:
     return regs
 
 
-# Experimentelle Heuristik: Register 0x04B0 = SOC (%)
-SOC_REGISTER = 0x04B0
+# Register-Heuristik (Kalibrierung 2026-10-31 gegen Cloud-API, Vorabend-Capture):
+# 0x0320 = SOC (%)  — gemessen 12→13, während Cloud-API ~13 % meldete.
+# 0x04B0 = SOH (%)  — konstant 100, konsistent mit Cloud-SOH 100 (war fälschlich
+#                     als SOC angenommen; bei leerem Akku stand dort weiter 100).
+# Beides ist weiter experimentell und wird live gegen die Cloud-API verifiziert.
+SOC_REGISTER = 0x0320
+SOH_REGISTER = 0x04B0

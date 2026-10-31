@@ -57,6 +57,8 @@ class DynessHub:
         self.serial = entry.data[CONF_SERIAL]
         self.firmware: str | None = None
         self.soc: int | None = None
+        self.soh: int | None = None
+        self.registers: dict[int, int] = {}
         # Zuletzt gesetzter Sollwert (Default: sichere 150 W / Lastpriorität).
         # Die Box hat kein Read-back — das ist der eigene Merkposten.
         self.power: int = MIN_POWER_W
