@@ -123,7 +123,10 @@ class DylinkServer:
 
     async def _process(self, serial: str, p: bytes, writer: asyncio.StreamWriter) -> None:
         ln = len(p)
-        tag = p[17:19] if ln > 19 else p
+        # Achtung: der Bind-Frame ist EXAKT 19 Bytes (10 + 16B SN + 91 22) —
+        # mit `> 19` wurde tag = ganzer Frame, Bind blieb unbeantwortet und die
+        # Box wartete ewig auf den BindACK (keine Config-Reports/Telemetrie).
+        tag = p[17:19] if ln >= 19 else p
         try:
             if ln >= 2 and p[0] == 0x10 and b"\x91\x00" in p[:24] and ln < 100:
                 # Login
