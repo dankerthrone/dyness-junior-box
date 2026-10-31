@@ -1,0 +1,46 @@
+set_workmode:
+  name: Arbeitsmodus setzen
+  description: >
+    Setzt Leistungslimit und Prioritätsmodus der Junior Box (lokal, ohne Cloud).
+    Leistungen unter 150 W werden von der Box als "unbegrenzt" behandelt —
+    die Integration schützt hier mit einer Untergrenze.
+  fields:
+    power:
+      name: Leistungslimit (W)
+      description: Leistung in Watt (150–800).
+      required: true
+      selector:
+        number:
+          min: 150
+          max: 800
+          step: 10
+          unit_of_measurement: W
+    mode:
+      name: Modus
+      description: 16 = Lastpriorität, 17 = Batteriepriorität, 255 = Shutdown.
+      required: false
+      default: 16
+      selector:
+        select:
+          options:
+            - label: Lastpriorität
+              value: 16
+            - label: Batteriepriorität
+              value: 17
+            - label: Shutdown
+              value: 255
+
+set_dod:
+  name: Entladetiefe setzen
+  description: Setzt die Entladetiefe (DOD) der Batterie in Prozent.
+  fields:
+    dod:
+      name: Entladetiefe (%)
+      description: Z. B. 95 = Batterie darf bis 5 % entladen werden.
+      required: true
+      selector:
+        number:
+          min: 50
+          max: 100
+          step: 1
+          unit_of_measurement: '%'

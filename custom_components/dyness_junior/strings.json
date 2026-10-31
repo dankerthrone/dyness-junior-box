@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Dyness Junior Box (Lokal)",
+        "description": "S/N des WiFi-Collectors (ohne `-BMS`-Suffix), z. B. auf der Box oder in der App sichtbar. Wichtig: logger.dyness.com muss per DNS-Rewrite auf diese HA-IP zeigen, damit die Box bei uns anklopft (siehe README).",
+        "data": {
+          "serial": "S/N (Collector)",
+          "port": "Lauschender Port (5005)",
+          "listen_ip": "Bind-Adresse (0.0.0.0)"
+        }
+      }
+    },
+    "error": {
+      "invalid_serial": "Die S/N darf nur Buchstaben und Zahlen enthalten (4–40 Zeichen)."
+    }
+  }
+}
