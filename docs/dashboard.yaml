@@ -29,6 +29,27 @@ views:
             type: slider
 
       - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: gauge
+            entity: number.dyness_junior_r07e8546681a0121_power_limit
+            name: Leistungsgrenze
+            min: 150
+            max: 800
+            unit: W
+            severity:
+              green: 150
+              yellow: 400
+              red: 650
+          - type: markdown
+            content: |
+              **Skala (10er-Schritte):**
+              150···200···300···400···500···600···700···800 W
+
+              Der Befehl geht **beim Loslassen** des Sliders raus (Maus loslassen / Finger heben) — einmal pro Ziehen, nicht laufend.
+
+      - type: grid
         columns: 3
         square: false
         cards:
