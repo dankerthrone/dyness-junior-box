@@ -1,6 +1,6 @@
 # Handoff — nächste Session: HAOS-Test der Integration v0.1
 
-Geschrieben 2026-10-31 (Session-Ende). **Ziel der nächsten Session: Integration v0.1 auf dem echten HAOS testen** (Lebenszeichen, Verbindungs-Sensor, ein Steuer-Service an der echten Box), Fehler debuggen, dann SOC-Ground-Truth. Danach (User-Wunsch): nocode-Automations-GUI — neue Gedanken-Runde, nicht in dieser Session.
+Geschrieben 2026-10-31 (Session-Ende; NATRAG zweite Hälfte). **Ziel der NÄCHSTEN Session: SOC-/Telemetrie-Dekodierung + echte Zustands-Entities.** Der HAOS-Test ist DURCH (v0.1.3 steuert die Box nachweislich — Tasmota 133 W bei 150-W-Write), aber Slider/Dropdown zeigen nur „zuletzt gesetzt“, nicht den echten Box-Zustand — User fordert zu Recht echtes Read-back. Einzige Quelle dafür: die periodischen Telemetrie-Register (SOC-Heuristik `0x04b0` eichen, prüfen ob aktueller Modus/Leistung in den Frames stecken) + 9002-Klartext-Pfad. Danach: Real-State in Number/Select-Entities + SOC-GUI. nocode-Automations-GUI bleibt Backlog.
 
 ## Wo steht was (Gedächtnis der Maschine)
 
@@ -42,6 +42,14 @@ Geschrieben 2026-10-31 (Session-Ende). **Ziel der nächsten Session: Integration
 - Port 5005 binden: HA-Integration läuft im HA-Prozess und darf binden (kein Root nötig); bei Fehler `Port belegt` → andere Dienste prüfen.
 - Bei HAOS-Fehlern: `homeassistant.log` via HA-WebUI (Einstellungen → System → Protokolle) — kein SSH nötig.
 - Commits: Repo-Identität ist `Timon <deine@email.de>` (Placeholder) — user-Entscheidung, ob auf GitHub-noreply umgestellt wird. Neues pushen: `git add -A && git commit && git push`.
+
+## Zustand bei Session-Ende (zweite Hälfte, 2026-10-31) — komprimiert
+
+- **Releases:** v0.1.0 (HACS-Install-Fix: Repo hatte KEINE Releases — HACS braucht Release/Tag!), v0.1.1 (S/N-Platzhalter aus Config-Flow entfernt), v0.1.2 (Service-Schemas → Felder in Tools→Actions), v0.1.3 (Select-Entity Modus + Number-Entity Leistungsgrenze/Slider). Releaseroutine: manifest-Version bumpen → push → `gh release create <v>`.
+- **MM-Relay (.146) dauerhaft gestoppt** (tcp_proxy 5005/1883 gekillt, kein Autostart). DNS-Rewrite `logger.dyness.com` → HA .126. Steuer-Beweis: identischer 150-W-Write → Tasmota 133 W.
+- **⛔ OFFENER BEFUND bei v0.1.3-UI-Test:** Tasmota 0.4 W, obwohl Cloud-API realtime **SOC 100 %** meldet (16.81 V, SOH 100) → Akku VOLL, trotzdem 0 W → Verdacht: Box steht im **Shutdown-Modus** (Mode-255-Test aus der UI?). Recovery: Modus auf Lastpriorität + 150 W; wenn weiter 0 W → Box-Power-Cycle (10 s Strom weg). Vor jeder SOC-Arbeit: Box-Zustand klären!
+- **Ground-Truth-Anker:** SOC 100 % (2026-10-31 ~16:00, Cloud-API) zum Vergleich mit Telemetrie-Dekodierung notiert.
+- **Real-State-Problem:** Cloud-API bietet kein Read-back (status→null); einzig mögliche Quelle für echten Modus/Leistung/SOC = Telemetrie-Register der Box → genau das ist das nächste Session-Ziel. User-Kritik: „Slider sollen echten Box-Zustand zeigen“ — angenommen und ins Ziel übernommen.
 
 ## Nach dieser Session (Backlog, User-Wünsche)
 
