@@ -11,17 +11,25 @@ Diese Anleitung richtet das mitgelieferte `docs/dashboard.yaml` ein.
   Buttons im Dashboard sind nur hübsche Verpackungen für solche Befehle.
 - **Dashboard** = die Seite(n), die du in HA siehst („Übersicht“ ist eines).
 
-## Weg 0 (einfachster, HA 2024.8+): Dashboard importieren
+## Weg 0 (empfohlen): automatisch per Skript
 
-1. HA → **Einstellungen → Dashboards**.
-2. **„+ Neu erstellen“** → im Dialog **„Dashboard importieren“** wählen.
-3. URL einfügen:
-   `https://raw.githubusercontent.com/dankerthrone/dyness-junior-box/main/docs/dashboard.yaml`
-4. **Importieren** → Dashboard „Dyness“ erscheint fertig.
+Aus dem Repo heraus (Rechner im selben Netz wie HA, Python mit
+`websockets` + `pyyaml`):
 
-Hinweis: Importiert wird mit den Entity-IDs des Autors. Falls bei dir etwas
-„Nicht verfügbar“ zeigt (z. B. anderes Area-Präfix): Einstellungen → Geräte
-& Dienste → Entitäten → Suche „dyness“ → die drei IDs im Dashboard ersetzen.
+```bash
+python3 tools/install_dashboard.py                 # legt/aktualisiert Dashboard 'dyness-junior-box'
+python3 tools/install_dashboard.py --url http://<ha-ip>:80 --token <TOKEN>
+```
+
+Token wahlweise als `--token`, Env `HA_TOKEN` oder Datei `--token-file`
+(Default `~/.hermes/creds/ha_token`) — nie durch den Chat. Das Skript
+verbindet sich per WebSocket (HA ≥ 2024) und schreibt die Konfiguration aus
+`docs/dashboard.yaml`; existiert das Dashboard nicht, wird es angelegt.
+
+Hinweis: Die Entity-IDs in der Datei sind die des Autors (inkl. evtl.
+Area-Präfix). Zeigt bei dir etwas „Nicht verfügbar“, die drei IDs unter
+**Einstellungen → Geräte & Dienste → Entitäten → Suche „dyness“** nachsehen
+und im Dashboard ersetzen.
 
 ## Weg 1 (einfach): Roh-Editor
 
