@@ -1,10 +1,10 @@
 {
   "domain": "dyness_junior",
   "name": "Dyness Junior Box (Local)",
-  "codeowners": ["@timon"],
+  "codeowners": ["@dankerthrone"],
   "config_flow": true,
-  "documentation": "https://github.com/timon/dyness-junior-box",
-  "issue_tracker": "https://github.com/timon/dyness-junior-box/issues",
+  "documentation": "https://github.com/dankerthrone/dyness-junior-box",
+  "issue_tracker": "https://github.com/dankerthrone/dyness-junior-box/issues",
   "iot_class": "local_polling",
   "requirements": [],
   "version": "0.1.0",
