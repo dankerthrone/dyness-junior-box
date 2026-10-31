@@ -11,9 +11,15 @@ Die **Dyness Junior Box** (Balkonkraftwerk-Batterie) **lokal steuern und monitor
 ## Installation (HACS)
 
 1. HACS → Integrationen → ⋮ → Benutzerdefinierte Repositories
-2. URL: `https://github.com/<dein-user>/dyness-junior-box` — Kategorie: **Integration**
+2. URL: `https://github.com/dankerthrone/dyness-junior-box` — Kategorie: **Integration**
 3. Installieren → Neustart → „Dyness Junior Box (Local)" als Integration hinzufügen
 4. **S/N des WiFi-Collectors** eintragen (ohne `-BMS`-Suffix, z. B. `R07E8546681A0121`)
+5. **Dashboard (1 Klick):** Einstellungen → Dashboards → „+ Neu erstellen“ → **„Dashboard importieren“** → diese URL einfügen:
+   `https://raw.githubusercontent.com/dankerthrone/dyness-junior-box/main/docs/dashboard.yaml`
+   → Importieren. Fertiges Steuer-Dashboard (Status, Slider 150–800 W, Modus-Buttons).
+   *Hinweis:* Zeigt eine Karte „nicht verfügbar“ (z. B. weil deine HA-Instanz der Box andere Entity-IDs gibt), die drei IDs unter **Einstellungen → Geräte & Dienste → Entitäten → Suche „dyness“** nachsehen und im Dashboard anpassen (Details: `docs/HA-Dashboard.md`).
+
+   Eine Integration kann Dashboards **nicht automatisch** anlegen (HA bietet dafür keine Schnittstelle) — der Import ist der offizielle, ein-Klick-Ersatz.
 
 ### Wichtig: DNS-Umleitung (einmalig, ~2 Minuten)
 

@@ -11,6 +11,18 @@ Diese Anleitung richtet das mitgelieferte `docs/dashboard.yaml` ein.
   Buttons im Dashboard sind nur hübsche Verpackungen für solche Befehle.
 - **Dashboard** = die Seite(n), die du in HA siehst („Übersicht“ ist eines).
 
+## Weg 0 (einfachster, HA 2024.8+): Dashboard importieren
+
+1. HA → **Einstellungen → Dashboards**.
+2. **„+ Neu erstellen“** → im Dialog **„Dashboard importieren“** wählen.
+3. URL einfügen:
+   `https://raw.githubusercontent.com/dankerthrone/dyness-junior-box/main/docs/dashboard.yaml`
+4. **Importieren** → Dashboard „Dyness“ erscheint fertig.
+
+Hinweis: Importiert wird mit den Entity-IDs des Autors. Falls bei dir etwas
+„Nicht verfügbar“ zeigt (z. B. anderes Area-Präfix): Einstellungen → Geräte
+& Dienste → Entitäten → Suche „dyness“ → die drei IDs im Dashboard ersetzen.
+
 ## Weg 1 (einfach): Roh-Editor
 
 1. HA → **Einstellungen → Dashboards → Neu erstellen** → Name „Dyness“, ok.
