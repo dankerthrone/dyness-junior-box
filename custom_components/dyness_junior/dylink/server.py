@@ -9,6 +9,15 @@ Verhaltensweise (Reverse Engineering 2026-10-31, siehe docs/ROADMAP.md):
 Die Box reconnectet im ~14-s-Zyklus; bei vielen Fehlversuchen geht sie in
 Backoff (Power-Cycle hilft). Zustandsloser Spiegel — robust gegen jede
 Frame-Reihenfolge der Box.
+
+WICHTIG (gemessen 2026-10-31, Live-Relay zur echten Cloud): Der echte Server
+(NLB) beendet die Verbindung nach ~10-12 s Inaktivitaet. Die Box schickt ihre
+Daten (Config-Report + periodische Telemetrie) NUR im Rahmen des Reconnect-
+Zyklus. Haelt der Server die Verbindung offen, sitzt die Box in einer leeren
+Session und es fliessen KEINE Daten. Deshalb: Verbindungen nach ~12 s ohne
+eingehende Frames schliessen (TIME_IDLE_CLOSE_S), damit die Box im natuerlichen
+Zyklus bleibt. Verifiziert: damit ist der ~14-s-Reconnect-Normalbetrieb
+wiederhergestellt, Firmware/SOC/SOH/Register aktualisieren sich von selbst.
 """
 from __future__ import annotations
 
@@ -22,6 +31,9 @@ from . import parser
 _LOGGER = logging.getLogger(__name__)
 
 MAX_FRAME = 8192
+
+# Wie der echte Cloud-Server: Verbindung nach dieser Inaktivitaet (s) schliessen.
+TIME_IDLE_CLOSE_S = 12.0
 
 
 class DylinkServer:
@@ -81,7 +93,12 @@ class DylinkServer:
         buf = b""
         try:
             while True:
-                chunk = await reader.read(65536)
+                try:
+                    chunk = await asyncio.wait_for(reader.read(65536), timeout=TIME_IDLE_CLOSE_S)
+                except asyncio.TimeoutError:
+                    # wie der echte Server: Leerlauf beendet die Verbindung ->
+                    # Box reconnectet und pusht frische Daten (Config/Telemetrie)
+                    break
                 if not chunk:
                     break
                 buf += chunk

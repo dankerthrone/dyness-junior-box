@@ -58,10 +58,10 @@ def parse_registers(payload: bytes) -> dict[int, int]:
     return regs
 
 
-# Register-Heuristik (Kalibrierung 2026-10-31 gegen Cloud-API, Vorabend-Capture):
-# 0x0320 = SOC (%)  — gemessen 12→13, während Cloud-API ~13 % meldete.
-# 0x04B0 = SOH (%)  — konstant 100, konsistent mit Cloud-SOH 100 (war fälschlich
-#                     als SOC angenommen; bei leerem Akku stand dort weiter 100).
-# Beides ist weiter experimentell und wird live gegen die Cloud-API verifiziert.
+# Register-Heuristik (Kalibrierung 2026-10-31 LIVE bestätigt via Relay zur echten
+# Cloud, 688-B-Telemetrie-Frame): 0x0320 = SOC (%) — Wert 72 nach ~2,5 h Entladung
+# aus vollem Akku (vorher 12→13 bei ~13 % SOC am Morgen). 0x04B0 = SOH (%)
+# konstant 100 (= Cloud-SOH; war fälschlich als SOC angenommen — bei leerem Akku
+# stand dort weiter 100).
 SOC_REGISTER = 0x0320
 SOH_REGISTER = 0x04B0
