@@ -115,5 +115,31 @@ def _register_services(hass: HomeAssistant, hub: DynessHub) -> None:
         dod = int(call.data["dod"])
         await _send(frames.build_dod(_ser, max(0, min(100, dod))), f"set_dod({dod})")
 
-    hass.services.async_register(DOMAIN, SERVICE_SET_WORKMODE, set_workmode)
-    hass.services.async_register(DOMAIN, SERVICE_SET_DOD, set_dod)
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_WORKMODE,
+        set_workmode,
+        vol.Schema(
+            {
+                vol.Optional("mode", default=MODE_LOAD): vol.In(
+                    (MODE_LOAD, MODE_BATTERY, MODE_SHUTDOWN)
+                ),
+                vol.Required("power"): vol.All(
+                    vol.Coerce(int),
+                    vol.Range(min=MIN_POWER_W, max=MAX_POWER_W),
+                ),
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_DOD,
+        set_dod,
+        vol.Schema(
+            {
+                vol.Required("dod"): vol.All(
+                    vol.Coerce(int), vol.Range(min=0, max=100)
+                ),
+            }
+        ),
+    )
