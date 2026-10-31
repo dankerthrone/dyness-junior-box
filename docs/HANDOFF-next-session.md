@@ -1,6 +1,6 @@
-# Handoff — nächste Session: HAOS-Test der Integration v0.1
+# Handoff — nächste Session: Real-State (Mode/Power) + Float-Sensoren
 
-Geschrieben 2026-10-31 (Session-Ende; NATRAG zweite Hälfte). **Ziel der NÄCHSTEN Session: SOC-/Telemetrie-Dekodierung + echte Zustands-Entities.** Der HAOS-Test ist DURCH (v0.1.3 steuert die Box nachweislich — Tasmota 133 W bei 150-W-Write), aber Slider/Dropdown zeigen nur „zuletzt gesetzt“, nicht den echten Box-Zustand — User fordert zu Recht echtes Read-back. Einzige Quelle dafür: die periodischen Telemetrie-Register (SOC-Heuristik `0x04b0` eichen, prüfen ob aktueller Modus/Leistung in den Frames stecken) + 9002-Klartext-Pfad. Danach: Real-State in Number/Select-Entities + SOC-GUI. nocode-Automations-GUI bleibt Backlog.
+Stand 2026-10-31 ABEND (SOC-Session weitgehend ABGESCHLOSSEN): **SOC/SOH/Firmware-Sensoren sind LIVE im echten HAOS-Betrieb** (v0.1.6: Server schließt Verbindungen nach 12 s Leerlauf → Box bleibt im ~14-s-Reconnect-Zyklus und pusht Config-Report + Telemetrie nur dort; davor: „Verbindung: an", aber NULL Daten). Firmware `RSW_14002_2_V4.0.181`, SOC-Register **0x0320** (100→72→69 mit Entladung, Tasmota-konsistent), SOH 0x04B0=100; Roh-Register-Attribut an der SOC-Entity. **Nächste Ziele: (1) Mode-/Leistungs-Register per Differenztest in den 688-B-Frames finden → Select/Number zeigen echten Box-Zustand (User-Wunsch), (2) Float-Tag-0x46 als Spannung/Strom/Temp-Sensoren (0x25c≈16,4 V, 0x2bc≈−9 A), (3) SOC ins Dashboard, (4) 9002-Pfad-MITM.** nocode-Automations-GUI bleibt Backlog.
 
 ## Wo steht was (Gedächtnis der Maschine)
 
