@@ -49,7 +49,11 @@ class DynessPowerLimitNumber(NumberEntity):
 
     @property
     def native_value(self) -> float | None:
-        return self._hub.power
+        # Read-back über Telemetrie-Register 0x1770 (Leistungs-Sollwert der Box),
+        # Fallback: zuletzt gesetzter Wert.
+        if self._hub.soll is not None:
+            return float(self._hub.soll)
+        return float(self._hub.power)
 
     async def async_set_native_value(self, value: float) -> None:
         power = int(value)
