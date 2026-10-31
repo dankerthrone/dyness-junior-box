@@ -55,10 +55,12 @@ Ziel: sehen, welche DNS-Adressen die Box tatsächlich anfragt — ohne schon umz
 3. **Box erneut neu starten** (Strom weg ~10 s, an). 2–5 Min warten.
 4. **Beobachten:**
    - Mosquitto-Add-on → **Log**: Taucht eine Verbindung vom Collector auf (CONNECT/PINGREQ/PUBLISH)?
-5. **Ergebnis-Entscheidungsbaum:**
-   - **(a) Verbindung auf 1883 + MQTT-Nachrichten** → Jackpot: Protokoll liegt im Klartext vor. Nächste Schritte: mit `mosquitto_sub -h <HA-IP> -t '#' -v` alles mitschneiden; Topics/Payloads kartieren; später `AT+MBWR`-Writes zum Collector nachbauen (e-Linter-Referenz: deye-inverter-mqtt).
-   - **(b) Nur Verbindungsversuche zu 8883 (TLS)** → die Box will verschlüsselt. Zweite Runde: Mosquitto mit zusätzlichem TLS-Listener (selbstsigniertes Zertifikat). Akzeptiert der Collector das Zertifikat NICHT (Handshake bricht ab) → er prüft Zertifikate: MQTT-MIMT tot, Ausweichrouten: Firmware-RE oder RS485. Akzeptiert er es → weiter wie (a).
-   - **(c) Gar kein Kontakt** → siehe Szenario B / Abschnitt „Nächste Ausweichrouten“.
+5. **Ergebnis-Entscheidungsbaum (Stand 2026-10-31):**
+   - **(a) KEIN MQTT — Port 5005!** Der Collector spricht auf TCP **5005** ein eigenes **Binary-Protokoll (4-Byte-Länge + Payload)**. Ein Mosquitto/1883-Listener fängt nichts. Testweise Mosquitto 1883 läuft daneben, aber der Datenfluss läuft über 5005.
+   - Der Dialog (entschlüsselt durch Replay gegen echte Server-IPs): Login `10 <SN> 91 00 solarhub solarhub@123456` → Server: Banner («This is dyness.raymon service…»)+`10 <SN> 91 00 01` → Bind `10 <SN> 91 22` → Server: `10 <SN> 91 22 00 00 01 a1 91 <token>` + Config-Frame → Box sendet 475-B-Config-Rapport (Firmware/MAC/Hosts/DHCP/API-URL) 2×. Danach: Server sendet nichts (verifiziert), Box reconnectet zyklisch (~10 s).
+   - Telemetrie-Kanal (Batteriedaten der Box) noch offen — vermutlich separater Kanal/MQTT; wurde am 5005-Dialog bislang nicht beobachtet.
+   - Steuerung (Modbus-artige Writes) über diesen Kanal: nächster Schritt (Server→Box-Frames erzeugen, `DylinkModbusWriteMessage`-Pendant).
+   - Ausführlicher Messbericht: WORKLOG 2026-10-31 08:50; Skripte: `tools/dylink_server_v5.py`, `tools/real_server_probe.py`.
 
 ---
 
