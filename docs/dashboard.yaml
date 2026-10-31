@@ -1,9 +1,10 @@
-# Dyness Junior Box — Dashboard (v0.1.1)
+# Dyness Junior Box — Dashboard (v0.1.3+)
 # Einrichtung: siehe docs/HA-Dashboard.md
 #
-# Hinweis: Die Entitäten-IDs enthalten die S/N. Falls deine HA-Installation
-# andere IDs vergeben hat (Einstellungen → Geräte & Dienste → Entitäten →
-# Suche "dyness"), bitte dort nachsehen und die drei IDs hier anpassen.
+# WICHTIG: HA bildet Entity-IDs aus den (deutschen) Namen, nicht aus den
+# unique_ids — inkl. evtl. Area-Praefix ("balkon_"). Die IDs unten sind von
+# der Live-Instanz des Autors. Falls bei dir etwas "Nicht verfügbar" zeigt:
+# Einstellungen → Geräte & Dienste → Entitäten → Suche "dyness" → ID kopieren.
 title: Dyness
 views:
   - title: Dyness Junior Box
@@ -12,19 +13,17 @@ views:
       - type: entities
         title: Status
         entities:
-          - entity: binary_sensor.dyness_junior_r07e8546681a0121_connection
+          - entity: binary_sensor.dyness_junior_box_r07e8546681a0121_verbindung
             name: Verbindung (Box ↔ HA)
-          - entity: sensor.dyness_junior_r07e8546681a0121_soc
-            name: Akku (SOC, experimentell)
-          - entity: sensor.dyness_junior_r07e8546681a0121_firmware
-            name: Firmware
+          # SOC/Firmware-Sensoren folgen mit der Telemetrie-Dekodierung
+          # (Sensor-Plattform registriert sie noch nicht — offener Punkt).
 
       - type: entities
         title: Steuerung
         entities:
-          - entity: select.dyness_junior_r07e8546681a0121_mode
+          - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
             name: Modus
-          - entity: number.dyness_junior_r07e8546681a0121_power_limit
+          - entity: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
             name: Leistungsgrenze
             type: slider
 
@@ -33,7 +32,7 @@ views:
         square: false
         cards:
           - type: gauge
-            entity: number.dyness_junior_r07e8546681a0121_power_limit
+            entity: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
             name: Leistungsgrenze
             min: 150
             max: 800
@@ -60,7 +59,7 @@ views:
               action: perform-action
               perform_action: select.select_option
               target:
-                entity_id: select.dyness_junior_r07e8546681a0121_mode
+                entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
               data:
                 option: Lastpriorität
           - type: button
@@ -70,7 +69,7 @@ views:
               action: perform-action
               perform_action: select.select_option
               target:
-                entity_id: select.dyness_junior_r07e8546681a0121_mode
+                entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
               data:
                 option: Batteriepriorität
           - type: button
@@ -80,7 +79,7 @@ views:
               action: perform-action
               perform_action: select.select_option
               target:
-                entity_id: select.dyness_junior_r07e8546681a0121_mode
+                entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
               data:
                 option: Aus (Shutdown)
           - type: button

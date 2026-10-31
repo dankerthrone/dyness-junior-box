@@ -49,17 +49,20 @@ Diese Anleitung richtet das mitgelieferte `docs/dashboard.yaml` ein.
 
 ## Entitäten-IDs prüfen
 
-Im Code sind die IDs aus der S/N abgeleitet:
+Wichtig: HA leitet die Entity-IDs aus den (deutschen) Namen ab, nicht aus
+den unique_ids — inkl. eventuellem Area-Praefix (`balkon_`). Auf der
+Referenz-Instanz (2026-10-31):
 
-| Anzeige            | Entität (beispielhaft)                                        |
-|--------------------|----------------------------------------------------------------|
-| Verbindung         | `binary_sensor.dyness_junior_R07E8546681A0121_connection` (klein) |
-| Akku (SOC)         | `sensor.dyness_junior_R07E8546681A0121_soc`                    |
-| Firmware           | `sensor.dyness_junior_R07E8546681A0121_firmware`               |
+| Anzeige     | Entität (auf der Referenz-Instanz)                              |
+|-------------|-----------------------------------------------------------------|
+| Verbindung  | `binary_sensor.dyness_junior_box_r07e8546681a0121_verbindung`   |
+| Modus       | `select.balkon_dyness_junior_box_r07e8546681a0121_modus`        |
+| Leistung    | `number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze` |
 
-Falls HA andere IDs vergeben hat: **Einstellungen → Geräte & Dienste →
-Entitäten** → Suche „dyness“ → IDs aus der Tabelle übernehmen und im YAML
-anpassen.
+SOC-/Firmware-Sensoren sind noch NICHT registriert (Sensor-Plattform —
+folgt mit der Telemetrie-Dekodierung; offener Punkt). Falls eine Karte
+„Nicht verfügbar“ zeigt: **Einstellungen → Geräte & Dienste → Entitäten →
+Suche „dyness“** → echte ID uebernehmen.
 
 ## Was die Buttons tun
 
