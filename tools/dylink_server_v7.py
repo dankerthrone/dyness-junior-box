@@ -44,7 +44,7 @@ def handle(c, a, n):
     while time.time() - t0 < 45:
         # Injektion nach 6s (nur einmal pro Verbindung)
         if not injected and time.time() - t0 > 6:
-            inj = INJECT150 if n <= 3 else INJECT200
+            inj = INJECT150  # Test abgeschlossen: nur noch 150W-Restaure injizieren
             try:
                 c.sendall(inj)
                 log(f"V#{n} INJEKT 00-78 {'150W(Kanal-Test)' if n <= 3 else '200W'} -> warte auf 91-78")
