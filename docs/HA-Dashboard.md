@@ -16,11 +16,12 @@ Diese Anleitung richtet das mitgelieferte `docs/dashboard.yaml` ein.
 1. HA → **Einstellungen → Dashboards → Neu erstellen** → Name „Dyness“, ok.
 2. Das neue Dashboard öffnen → Stift (Bearbeiten) → oben rechts **„⋮“ →
    Roh-Editor** (Raw configuration editor).
-3. Inhalt von `docs/dashboard.yaml` **nach** den Zeilen mit `title:`/`views:`
-   einfügen — genauer: die drei Karten-Blöcke (ab `- type: entities` bis zum
-   Ende). Die `title:`/`views:`-Zeilen sind für den Datei-Modus (Weg 2) gedacht;
-   im Roh-Editor wird nur der Karten-Teil übernommen.
-4. Speichern. Fertig.
+4. Im Roh-Editor **alles löschen** (dort steht nur `[]` oder alte Karten) und
+   den **kompletten Inhalt von `docs/dashboard-cards.yaml`** einfügen — diese
+   Datei enthält NUR die Karten, ohne `title:`/`views:`-Kopf (der gehört in
+   die Datei `docs/dashboard.yaml`, die nur für den yaml-Datei-Modus, Weg 2,
+   gedacht ist).
+5. Speichern. Fertig.
 
 ## Weg 2 (mit Datei, yaml-Modus)
 

@@ -1,0 +1,94 @@
+      - type: entities
+        title: Status
+        entities:
+          - entity: binary_sensor.dyness_junior_box_r07e8546681a0121_verbindung
+            name: Verbindung (Box ↔ HA)
+          # SOC/Firmware-Sensoren folgen mit der Telemetrie-Dekodierung
+          # (Sensor-Plattform registriert sie noch nicht — offener Punkt).
+
+      - type: entities
+        title: Steuerung
+        entities:
+          - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+            name: Modus
+          - entity: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+            name: Leistungsgrenze
+            type: slider
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: gauge
+            entity: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+            name: Leistungsgrenze
+            min: 150
+            max: 800
+            unit: W
+            severity:
+              green: 150
+              yellow: 400
+              red: 650
+          - type: markdown
+            content: |
+              **Skala (10er-Schritte):**
+              150···200···300···400···500···600···700···800 W
+
+              Der Befehl geht **beim Loslassen** des Sliders raus (Maus loslassen / Finger heben) — einmal pro Ziehen, nicht laufend.
+
+      - type: grid
+        columns: 3
+        square: false
+        cards:
+          - type: button
+            name: Lastpriorität
+            icon: mdi:power-plug
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+              data:
+                option: Lastpriorität
+          - type: button
+            name: Batteriepriorität
+            icon: mdi:battery-charging
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+              data:
+                option: Batteriepriorität
+          - type: button
+            name: Aus (Shutdown)
+            icon: mdi:power-off
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+              data:
+                option: Aus (Shutdown)
+          - type: button
+            name: Entladetiefe 95 %
+            icon: mdi:battery-arrow-down
+            tap_action:
+              action: perform-action
+              perform_action: dyness_junior.set_dod
+              data:
+                dod: 95
+
+      - type: markdown
+        content: |
+          **Sicherheit:** Der Slider beginnt bei **150 W** — alles darunter
+          behandelt die Box als „unbegrenzt“ (Akku-Leerlauf-Gefahr). Die Werte wirken
+          auf die Gesamt-Ausgangsleistung; die Tasmota (192.168.178.119) zeigt
+          ≈ Soll − ~14 W (150 → ~136 W). Die Box hat **kein Read-back**: Slider
+          und Modus-Dropdown zeigen den zuletzt gesetzten Wert, nicht den
+          tatsächlichen Zustand der Box. „Aus (Shutdown)“ schaltet die Box aus.
+
+          **Nicht verbunden?** 1) AdGuard → Query Log: `logger.dyness.com` muss auf
+          die HA-IP (.126) zeigen. 2) Box ~10 s stromlos machen (triggert sofort
+          neuen Verbindungsversuch). 3) `homeassistant.log` nach
+          „Dylink-Server lauscht“ durchsuchen.
