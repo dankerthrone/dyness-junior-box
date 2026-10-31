@@ -1,0 +1,91 @@
+# Dyness Junior Box — Dashboard (v0.1.1)
+# Einrichtung: siehe docs/HA-Dashboard.md
+#
+# Hinweis: Die Entitäten-IDs enthalten die S/N. Falls deine HA-Installation
+# andere IDs vergeben hat (Einstellungen → Geräte & Dienste → Entitäten →
+# Suche "dyness"), bitte dort nachsehen und die drei IDs hier anpassen.
+title: Dyness
+views:
+  - title: Dyness Junior Box
+    path: dyness
+    cards:
+      - type: entities
+        title: Status
+        entities:
+          - entity: binary_sensor.dyness_junior_r07e8546681a0121_connection
+            name: Verbindung (Box ↔ HA)
+          - entity: sensor.dyness_junior_r07e8546681a0121_soc
+            name: Akku (SOC, experimentell)
+          - entity: sensor.dyness_junior_r07e8546681a0121_firmware
+            name: Firmware
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            name: 150 W (Grundeinstellung)
+            icon: mdi:power-plug
+            tap_action:
+              action: perform-action
+              perform_action: dyness_junior.set_workmode
+              data:
+                mode: 16
+                power: 150
+          - type: button
+            name: 200 W
+            icon: mdi:power-plug-outline
+            tap_action:
+              action: perform-action
+              perform_action: dyness_junior.set_workmode
+              data:
+                mode: 16
+                power: 200
+          - type: button
+            name: 300 W
+            icon: mdi:power-plug-outline
+            tap_action:
+              action: perform-action
+              perform_action: dyness_junior.set_workmode
+              data:
+                mode: 16
+                power: 300
+          - type: button
+            name: 500 W
+            icon: mdi:power-plug-outline
+            tap_action:
+              action: perform-action
+              perform_action: dyness_junior.set_workmode
+              data:
+                mode: 16
+                power: 500
+          - type: button
+            name: Batterie zuerst (800 W)
+            icon: mdi:battery-charging
+            tap_action:
+              action: perform-action
+              perform_action: dyness_junior.set_workmode
+              data:
+                mode: 17
+                power: 800
+          - type: button
+            name: Entladetiefe 95 %
+            icon: mdi:battery-arrow-down
+            tap_action:
+              action: perform-action
+              perform_action: dyness_junior.set_dod
+              data:
+                dod: 95
+
+      - type: markdown
+        content: |
+          **Sicherheit:** Der Service erzwingt **mindestens 150 W** — alles darunter
+          behandelt die Box als „unbegrenzt“ (Akku-Leerlauf-Gefahr). Die Werte wirken
+          auf die Gesamt-Ausgangsleistung; die Tasmota (192.168.178.119) zeigt
+          ≈ Soll − 14 W (150 → ~136 W). Aktiver Modus ist nicht auslesbar –
+          gemerkten Sollwert lieber selbst notieren.
+
+          **Nicht verbunden?** 1) AdGuard → Query Log: `logger.dyness.com` muss auf
+          die HA-IP (.126) zeigen. 2) Box ~10 s stromlos machen (triggert sofort
+          neuen Verbindungsversuch). 3) `homeassistant.log` nach
+          „Dylink-Server lauscht“ durchsuchen.
