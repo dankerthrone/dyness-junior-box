@@ -19,55 +19,49 @@ views:
           - entity: sensor.dyness_junior_r07e8546681a0121_firmware
             name: Firmware
 
+      - type: entities
+        title: Steuerung
+        entities:
+          - entity: select.dyness_junior_r07e8546681a0121_mode
+            name: Modus
+          - entity: number.dyness_junior_r07e8546681a0121_power_limit
+            name: Leistungsgrenze
+            type: slider
+
       - type: grid
-        columns: 2
+        columns: 3
         square: false
         cards:
           - type: button
-            name: 150 W (Grundeinstellung)
+            name: Lastpriorität
             icon: mdi:power-plug
             tap_action:
               action: perform-action
-              perform_action: dyness_junior.set_workmode
+              perform_action: select.select_option
+              target:
+                entity_id: select.dyness_junior_r07e8546681a0121_mode
               data:
-                mode: 16
-                power: 150
+                option: Lastpriorität
           - type: button
-            name: 200 W
-            icon: mdi:power-plug-outline
-            tap_action:
-              action: perform-action
-              perform_action: dyness_junior.set_workmode
-              data:
-                mode: 16
-                power: 200
-          - type: button
-            name: 300 W
-            icon: mdi:power-plug-outline
-            tap_action:
-              action: perform-action
-              perform_action: dyness_junior.set_workmode
-              data:
-                mode: 16
-                power: 300
-          - type: button
-            name: 500 W
-            icon: mdi:power-plug-outline
-            tap_action:
-              action: perform-action
-              perform_action: dyness_junior.set_workmode
-              data:
-                mode: 16
-                power: 500
-          - type: button
-            name: Batterie zuerst (800 W)
+            name: Batteriepriorität
             icon: mdi:battery-charging
             tap_action:
               action: perform-action
-              perform_action: dyness_junior.set_workmode
+              perform_action: select.select_option
+              target:
+                entity_id: select.dyness_junior_r07e8546681a0121_mode
               data:
-                mode: 17
-                power: 800
+                option: Batteriepriorität
+          - type: button
+            name: Aus (Shutdown)
+            icon: mdi:power-off
+            tap_action:
+              action: perform-action
+              perform_action: select.select_option
+              target:
+                entity_id: select.dyness_junior_r07e8546681a0121_mode
+              data:
+                option: Aus (Shutdown)
           - type: button
             name: Entladetiefe 95 %
             icon: mdi:battery-arrow-down
@@ -79,11 +73,12 @@ views:
 
       - type: markdown
         content: |
-          **Sicherheit:** Der Service erzwingt **mindestens 150 W** — alles darunter
+          **Sicherheit:** Der Slider beginnt bei **150 W** — alles darunter
           behandelt die Box als „unbegrenzt“ (Akku-Leerlauf-Gefahr). Die Werte wirken
           auf die Gesamt-Ausgangsleistung; die Tasmota (192.168.178.119) zeigt
-          ≈ Soll − 14 W (150 → ~136 W). Aktiver Modus ist nicht auslesbar –
-          gemerkten Sollwert lieber selbst notieren.
+          ≈ Soll − ~14 W (150 → ~136 W). Die Box hat **kein Read-back**: Slider
+          und Modus-Dropdown zeigen den zuletzt gesetzten Wert, nicht den
+          tatsächlichen Zustand der Box. „Aus (Shutdown)“ schaltet die Box aus.
 
           **Nicht verbunden?** 1) AdGuard → Query Log: `logger.dyness.com` muss auf
           die HA-IP (.126) zeigen. 2) Box ~10 s stromlos machen (triggert sofort

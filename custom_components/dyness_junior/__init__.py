@@ -37,7 +37,7 @@ from .dylink import DylinkServer, frames
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["sensor", "binary_sensor"]
+PLATFORMS = ["sensor", "binary_sensor", "select", "number"]
 
 
 class DynessHub:
@@ -50,6 +50,12 @@ class DynessHub:
         self.serial = entry.data[CONF_SERIAL]
         self.firmware: str | None = None
         self.soc: int | None = None
+        # Zuletzt gesetzter Sollwert (Default: sichere 150 W / Lastpriorität).
+        # Die Box hat kein Read-back — das ist der eigene Merkposten.
+        self.power: int = MIN_POWER_W
+        self.mode: int = MODE_LOAD
+        self.power_entity = None
+        self.mode_entity = None
 
     @property
     def unique_id(self) -> str:
@@ -109,6 +115,12 @@ def _register_services(hass: HomeAssistant, hub: DynessHub) -> None:
                 "'unbegrenzt' behandelt (Akku-Gefahr)", power, MIN_POWER_W
             )
         power = max(MIN_POWER_W, min(MAX_POWER_W, power))
+        hub.power = power
+        hub.mode = mode
+        if hub.power_entity is not None:
+            hub.power_entity.async_write_ha_state()
+        if hub.mode_entity is not None:
+            hub.mode_entity.async_write_ha_state()
         await _send(frames.build_workmode(_ser, mode, power), f"set_workmode(mode={mode}, power={power})")
 
     async def set_dod(call: ServiceCall) -> None:
