@@ -19,16 +19,13 @@ set_workmode:
       name: Modus
       description: 16 = Lastpriorität, 17 = Batteriepriorität, 255 = Shutdown.
       required: false
-      default: 16
+      default: Lastpriorität
       selector:
         select:
           options:
-            - label: Lastpriorität
-              value: 16
-            - label: Batteriepriorität
-              value: 17
-            - label: Shutdown
-              value: 255
+            - Lastpriorität
+            - Batteriepriorität
+            - Shutdown
 
 set_dod:
   name: Entladetiefe setzen

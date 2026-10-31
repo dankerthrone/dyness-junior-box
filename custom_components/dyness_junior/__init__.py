@@ -39,6 +39,13 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = ["sensor", "binary_sensor", "select", "number"]
 
+# UI-Bezeichnungen (services.yaml) → Modus-Codes; Zahlen (z. B. REST) gehen direkt durch.
+_MODE_LABELS = {
+    "Lastpriorität": MODE_LOAD,
+    "Batteriepriorität": MODE_BATTERY,
+    "Shutdown": MODE_SHUTDOWN,
+}
+
 
 class DynessHub:
     """Daten-Hub: hält Server + zuletzt gesehene Werte."""
@@ -108,7 +115,8 @@ def _register_services(hass: HomeAssistant, hub: DynessHub) -> None:
 
     async def set_workmode(call: ServiceCall) -> None:
         power = int(call.data["power"])
-        mode = int(call.data.get("mode", MODE_LOAD))
+        mode_raw = call.data.get("mode", MODE_LOAD)
+        mode = int(_MODE_LABELS.get(str(mode_raw), mode_raw))
         if power < MIN_POWER_W:
             _LOGGER.warning(
                 "Leistung %s W abgelehnt: < %s W wird von der Box als "
@@ -133,8 +141,9 @@ def _register_services(hass: HomeAssistant, hub: DynessHub) -> None:
         set_workmode,
         vol.Schema(
             {
-                vol.Optional("mode", default=MODE_LOAD): vol.In(
-                    (MODE_LOAD, MODE_BATTERY, MODE_SHUTDOWN)
+                vol.Optional("mode", default=MODE_LOAD): vol.Any(
+                    vol.In((MODE_LOAD, MODE_BATTERY, MODE_SHUTDOWN)),
+                    vol.In(tuple(_MODE_LABELS)),
                 ),
                 vol.Required("power"): vol.All(
                     vol.Coerce(int),

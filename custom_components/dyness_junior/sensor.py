@@ -4,6 +4,7 @@ from __future__ import annotations
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import SENSOR_FIRMWARE, SENSOR_SOC, DOMAIN
@@ -53,7 +54,7 @@ class DynessFirmwareSensor(DynessSensorBase):
     def __init__(self, hub) -> None:
         super().__init__(hub)
         self._attr_unique_id = f"{hub.unique_id}_firmware"
-        self._attr_device_class = SensorDeviceClass.FIRMWARE
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
 
     @property
     def native_value(self) -> str | None:
