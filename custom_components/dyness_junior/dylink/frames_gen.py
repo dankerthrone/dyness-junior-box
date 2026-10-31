@@ -29,12 +29,30 @@ def ack_cfgrep(serial: bytes) -> bytes:
     return build(serial, b"\x99\x71\x01")
 
 def bind_ack(serial: bytes, token: bytes) -> bytes:
-    return build(serial, b"\x91\x22\x00\x00\x01\xa1\x91" + token)
+    # 0xa1 0x93 wie der echte Server (nicht 0xa1 0x91) — gemessen 2026-10-31
+    return build(serial, b"\x91\x22\x00\x00\x01\xa1\x93" + token)
 
 def time_push(serial: bytes) -> bytes:
+    """Zeitsync im echten Server-Format (gemessen 2026-10-31 per Relay).
+
+    Format: 00 77 00 00 12 f8 13 a0 0a 01 08 02 00 08 <sek> <min> 15 1f 0a 1a 06 01 <rand2> d0 0d
+    <sek> = aktuelle Sekunde, <min> = aktuelle Minute (lokal, Wertebereich 0-59),
+    <rand2> = 2 Zufallsbytes. Ein STATISCHER Zeitsync (stundenalte Zeit) lässt die
+    Box die Session nicht abschließen (kein Config-Report/Telemetrie) — v0.1.6/0.1.7
+    blieben deshalb stumm. Der 39-B-Zeitsync (0x13 0x03 0x0b...) bleibt unverändert.
+    """
+    import os
+    import time as _time
+
+    now = _time.localtime()
+    extra = os.urandom(2)
     return build(
         serial,
-        b"\x00\x77\x00\x00\x12\xf8\x13\xa0\x0a\x01\x08\x02\x00\x08\x00\x02\x09\x1f\x0a\x1a\x06\x01\x1c\x04\xd0\x0d",
+        b"\x00\x77\x00\x00\x12\xf8\x13\xa0\x0a\x01\x08\x02\x00\x08"
+        + bytes([now.tm_sec, now.tm_min])
+        + b"\x15\x1f\x0a\x1a\x06\x01"
+        + extra
+        + b"\xd0\x0d",
     )
 
 def make_workmode(serial: bytes, mode: int, power_w: int) -> bytes:
