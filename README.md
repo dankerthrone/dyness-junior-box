@@ -15,15 +15,24 @@ Die **Dyness Junior Box** (Balkonkraftwerk-Batterie) **lokal steuern und monitor
 3. Installieren → Neustart → „Dyness Junior Box (Local)" als Integration hinzufügen
 4. **S/N des WiFi-Collectors** eintragen (ohne `-BMS`-Suffix, z. B. `R07E8546681A0121`)
 
-### Wichtig: DNS-Umleitung (einmalig)
+### Wichtig: DNS-Umleitung (einmalig, ~2 Minuten)
 
-Die Box ruft aktiv `logger.dyness.com` auf (alle ~14 s). Damit sie **bei deiner HA-Instanz** anklopft, muss dieser Name auf die HA-IP zeigen, z. B. per DNS-Rewrite in AdGuard Home:
+**Warum das nötig ist:** Die Box ist nur ein Client — sie nimmt selbst keine Verbindungen an, sondern ruft von sich aus `logger.dyness.com` auf (alle ~14 Sekunden). Damit sie aber **bei deiner HA-Instanz** anklopft statt in der Dyness-Cloud, muss dieser Name auf die IP deiner HA zeigen. Diese Umleitung kann die Integration **nicht selbst einrichten** — sie ist Netzwerk-Sache. Du brauchst **keine neue Software**: Wer schon AdGuard Home (oder Pi-hole) im Netz hat, fügt dort nur eine Zeile hinzu. Das erledigt man **einmalig**, bei der Installation.
 
-```
-logger.dyness.com → <IP-der-HA>
-```
+**Schritt für Schritt (AdGuard Home als Beispiel):**
 
-Danach: Box einmal vom Strom nehmen (10 s) — sie verbindet sich innerhalb einer Minute mit HA. Die App zeigt die Box dann als „offline" (erwartet), die Integration als „verbunden".
+1. Öffne die AdGuard-Oberfläche im Browser (z. B. `http://<IP-des-AdGuard>`).
+2. Gehe auf den Tab **Filter** (nicht Einstellungen!) → Abschnitt **DNS-Umleitungen** → Klick auf **„DNS-Umleitung hinzufügen"** („Add DNS rewrite").
+3. Trage ein:
+   - **Domain:** `logger.dyness.com`
+   - **Ziel:** die IP deiner Home-Assistant-Installation (z. B. `192.168.178.126` — achte darauf: die IP, unter der **HA** läuft, nicht die des AdGuard!)
+4. Speichern. Danach die **Box einmal vom Strom nehmen (10 Sekunden)** und wieder einstecken — sie verbindet sich innerhalb von einer Minute mit HA.
+
+**So prüfst du, ob es klappt:** In der Integration erscheint der Sensor **„Verbindung"** = *an*. Zusätzlich kannst du von einem Computer im Netz testen: `nslookup logger.dyness.com` → als Antwort muss die **HA-IP** erscheinen (statt einer Dyness-ServereIP).
+
+**Erwartetes Ergebnis:** Die Dyness-App zeigt die Box danach als „offline" — das ist gewollt. HA (diese Integration) übernimmt jetzt die Rolle des Servers; die Box „lebt" lokal.
+
+**Hinweis für Fortgeschrittene:** Statt AdGuard kannst du dieselbe Zuordnung auch am Router eintragen, sofern dieser Host-Überschreibungen (DNS-Override) kann — entscheidend ist nur: `logger.dyness.com` muss im ganzen Netz auf die HA-IP zeigen. (Eine Zukunftsidee des Projekts: statische Server-IP der Box direkt bei der Inbetriebnahme setzen — dann wäre die DNS-Regel verzichtbar.)
 
 ## Services
 
