@@ -32,6 +32,11 @@ def build_time_push(serial: str) -> bytes:
     return g.time_push(serial_bytes(serial))
 
 
+def build_static_39(serial: str) -> bytes:
+    """Die vom echten Server wiederholte 39-B-Meldung (s. frames_gen.static_39)."""
+    return g.static_39(serial_bytes(serial))
+
+
 def build_workmode(serial: str, mode: int, power_w: int) -> bytes:
     """SetWorkModeSetting. mode 16/17/255; power 150..800 (Untergrenze!)."""
     return g.make_workmode(serial_bytes(serial), mode, power_w)

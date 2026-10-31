@@ -55,6 +55,16 @@ def time_push(serial: bytes) -> bytes:
         + b"\xd0\x0d",
     )
 
+def static_39(serial: bytes) -> bytes:
+    """Statische 39-B-Meldung des echten Servers (Mitschnitt 2026-10-31).
+
+    Der echte Server sendet dieses Frame bei jeder Session mehrfach (~alle 5 s);
+    ohne es bleibt die Box offenbar im Wartezustand und schickt keine Daten.
+    Bytes sind über alle Mitschnitte konstant — 1:1 vom Original übernommen.
+    """
+    return build(serial, bytes.fromhex("0077000013030ba00a010c010000915ed00d"))
+
+
 def make_workmode(serial: bytes, mode: int, power_w: int) -> bytes:
     """mode: 16=Lastprio, 17=Batterieprio, 255=Shutdown; power 150..800 (min 150!)."""
     f = bytearray(WM_REST)

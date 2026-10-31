@@ -34,6 +34,8 @@ MAX_FRAME = 8192
 
 # Wie der echte Cloud-Server: Verbindung nach dieser Inaktivitaet (s) schliessen.
 TIME_IDLE_CLOSE_S = 12.0
+# Takt der wiederholten Server-Pushes (Zeitsync + 39-B-Meldung), gemessen ~5 s.
+PUSH_INTERVAL_S = 5.0
 
 
 class DylinkServer:
@@ -43,6 +45,7 @@ class DylinkServer:
         self._port = port
         self._server: asyncio.Server | None = None
         self._clients: set[asyncio.StreamWriter] = set()
+        self._push_tasks: dict[asyncio.StreamWriter, asyncio.Task] = {}
         self._client_count = 0
         self.client_connected = False
         # Callbacks (werden von HA gesetzt)
@@ -68,6 +71,26 @@ class DylinkServer:
         self._set_connected(False)
 
     # --- Steuerung --------------------------------------------------------
+    async def _pusher(self, writer: asyncio.StreamWriter) -> None:
+        """Wie der echte Server: Zeit-Push + 39-B-Meldung alle ~5 s wiederholen.
+
+        Gemessen (2026-10-31, Relay-Mitschnitt): der echte Server sendet pro
+        Session mehrfach den 47-B-Zeitsync UND die konstante 39-B-Meldung
+        (Takt ~5 s). Ohne diese wiederholten Pushes bleibt die Box im
+        Wartezustand und schickt keine Config-Reports/Telemetrie.
+        """
+        try:
+            while writer in self._clients:
+                try:
+                    writer.write(frames.build_time_push(self._serial))
+                    writer.write(frames.build_static_39(self._serial))
+                    await writer.drain()
+                except Exception:  # noqa: BLE001
+                    return
+                await asyncio.sleep(PUSH_INTERVAL_S)
+        except asyncio.CancelledError:
+            pass
+
     def inject(self, frame: bytes) -> bool:
         """Befehl an die aktuell verbundene Box senden (00-78-Steuerung)."""
         if not self._clients:
@@ -115,6 +138,9 @@ class DylinkServer:
         except Exception as exc:  # noqa: BLE001
             _LOGGER.debug("Client-Fehler: %s", exc)
         finally:
+            task = self._push_tasks.pop(writer, None)
+            if task:
+                task.cancel()
             self._clients.discard(writer)
             writer.close()
             if not self._clients:
@@ -149,7 +175,10 @@ class DylinkServer:
             elif tag == b"\x91\x22":
                 writer.write(frames.build_bind_ack(serial))
                 writer.write(frames.build_time_push(serial))
+                writer.write(frames.build_static_39(serial))
                 await writer.drain()
+                if writer not in self._push_tasks:
+                    self._push_tasks[writer] = asyncio.create_task(self._pusher(writer))
             elif tag == b"\x91\x87":
                 pass  # config-ack der Box — keine Antwort nötig
             elif tag == b"\x91\x78":
