@@ -1,10 +1,11 @@
-# Dyness Junior Box — Dashboard (v1.0.0+)
+# Dyness Junior Box — Dashboard (v1.1.0+)
 # Einrichtung: siehe docs/HA-Dashboard.md
 #
-# WICHTIG: HA bildet Entity-IDs aus den (deutschen) Namen, nicht aus den
-# unique_ids — inkl. evtl. Area-Praefix ("balkon_"). Die IDs unten sind von
-# der Live-Instanz des Autors. Falls bei dir etwas "Nicht verfügbar" zeigt:
-# Einstellungen → Geräte & Dienste → Entitäten → Suche "dyness" → ID kopieren.
+# WICHTIG: HA bildet Entity-IDs aus den (deutschen) Namen — inkl. evtl.
+# Area-Praefix ("balkon_"). Ab v1.1.0 tragen SOC/SOH/Spannung/Strom keinen
+# "(experimentell)"-Zusatz mehr (validiert): IDs sind _soc/_soh/_spannung/_strom.
+# Falls bei dir etwas "Nicht verfügbar" zeigt: Einstellungen → Geräte & Dienste →
+# Entitäten → Suche "dyness" → ID kopieren.
 title: Dyness
 views:
   - title: Dyness Junior Box
@@ -16,7 +17,7 @@ views:
         square: true
         cards:
           - type: gauge
-            entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_soc_experimentell
+            entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_soc
             name: Akku (SOC)
             min: 0
             max: 100
@@ -36,27 +37,27 @@ views:
               yellow: 400
               red: 700
 
-      # ── Messwerte ──────────────────────────────────────────────────────
-      - type: entities
-        title: Messwerte
-        entities:
-          - entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_spannung_experimentell
-            name: Batteriespannung
-          - entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_strom_experimentell
-            name: Batteriestrom (negativ = Entladen)
-          - entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_soh_experimentell
-            name: Batterie-Gesundheit (SOH)
-          - entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_firmware
-            name: Firmware
+      # ── Messwerte (live, Takt ~4–5 min) ────────────────────────────────
+      - type: markdown
+        content: >
+          **Messwerte** (Gerät sendet alle ~4–5 min)
 
-      # ── Steuerung ──────────────────────────────────────────────────────
+          - **Akku SOC:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_soc") }} %
+            — Stand vor
+            {{ (now().timestamp() - as_timestamp(states.sensor.balkon_dyness_junior_box_r07e8546681a0121_soc.last_updated)) | round(0) }}
+            s
+          - **Spannung:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_spannung") }} V ·
+            **Strom:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_strom") }} A
+            (negativ = Entladen)
+          - **Batterie-Gesundheit:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_soh") }} %
+            · **Ausgang:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_ausgangsleistung") }} W
+
+      # ── Steuerung: Leistungsgrenze ────────────────────────────────────
       - type: entities
-        title: Steuerung
+        title: Leistungsgrenze
         entities:
-          - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
-            name: Modus
           - entity: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
-            name: Leistungsgrenze (klicken = Zahl eingeben)
+            name: Leistungsgrenze (klicken = Zahl 150–800)
 
       - type: grid
         columns: 5
@@ -108,48 +109,117 @@ views:
               data:
                 value: 800
 
+      # ── Steuerung: Modus (aktiver Modus ist farblich markiert) ────────
+      # Jeder Modus existiert doppelt: GRÜN = aktiv, grau = inaktiv.
       - type: grid
         columns: 3
         square: false
         cards:
-          - type: button
-            name: Lastpriorität
-            icon: mdi:power-plug
-            tap_action:
-              action: perform-action
-              perform_action: select.select_option
-              target:
-                entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
-              data:
-                option: Lastpriorität
-          - type: button
-            name: Batteriepriorität
-            icon: mdi:battery-charging
-            tap_action:
-              action: perform-action
-              perform_action: select.select_option
-              target:
-                entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
-              data:
-                option: Batteriepriorität
-          - type: button
-            name: Aus (Shutdown)
-            icon: mdi:power-off
-            tap_action:
-              action: perform-action
-              perform_action: select.select_option
-              target:
-                entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
-              data:
-                option: Aus (Shutdown)
-          - type: button
-            name: Entladetiefe 95 %
-            icon: mdi:battery-arrow-down
-            tap_action:
-              action: perform-action
-              perform_action: dyness_junior.set_dod
-              data:
-                dod: 95
+          - type: conditional
+            conditions:
+              - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                state: Lastpriorität
+            card:
+              type: button
+              name: Lastpriorität
+              icon: mdi:power-plug
+              style:
+                card:
+                  background: rgba(76, 175, 80, 0.45)
+              tap_action:
+                action: perform-action
+                perform_action: select.select_option
+                target:
+                  entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                data:
+                  option: Lastpriorität
+          - type: conditional
+            conditions:
+              - condition: not
+                conditions:
+                  - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                    state: Lastpriorität
+            card:
+              type: button
+              name: Lastpriorität
+              icon: mdi:power-plug
+              tap_action:
+                action: perform-action
+                perform_action: select.select_option
+                target:
+                  entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                data:
+                  option: Lastpriorität
+          - type: conditional
+            conditions:
+              - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                state: Batteriepriorität
+            card:
+              type: button
+              name: Batteriepriorität
+              icon: mdi:battery-charging
+              style:
+                card:
+                  background: rgba(76, 175, 80, 0.45)
+              tap_action:
+                action: perform-action
+                perform_action: select.select_option
+                target:
+                  entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                data:
+                  option: Batteriepriorität
+          - type: conditional
+            conditions:
+              - condition: not
+                conditions:
+                  - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                    state: Batteriepriorität
+            card:
+              type: button
+              name: Batteriepriorität
+              icon: mdi:battery-charging
+              tap_action:
+                action: perform-action
+                perform_action: select.select_option
+                target:
+                  entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                data:
+                  option: Batteriepriorität
+          - type: conditional
+            conditions:
+              - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                state: Aus (Shutdown)
+            card:
+              type: button
+              name: Aus (Shutdown)
+              icon: mdi:power-off
+              style:
+                card:
+                  background: rgba(244, 67, 54, 0.45)
+              tap_action:
+                action: perform-action
+                perform_action: select.select_option
+                target:
+                  entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                data:
+                  option: Aus (Shutdown)
+          - type: conditional
+            conditions:
+              - condition: not
+                conditions:
+                  - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                    state: Aus (Shutdown)
+            card:
+              type: button
+              name: Aus (Shutdown)
+              icon: mdi:power-off
+              tap_action:
+                action: perform-action
+                perform_action: select.select_option
+                target:
+                  entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+                data:
+                  option: Aus (Shutdown)
 
       # ── Diagnose ───────────────────────────────────────────────────────
       - type: entities
@@ -157,28 +227,27 @@ views:
         entities:
           - entity: binary_sensor.dyness_junior_box_r07e8546681a0121_verbindung
             name: Verbindung (Box ↔ HA)
+          - entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_firmware
+            name: Firmware
           - entity: update.dyness_junior_box_local_update
             name: Integration-Update
 
       # ── Hinweise ───────────────────────────────────────────────────────
       - type: markdown
         content: |
-          **Sicherheit:** Der Slider beginnt bei **150 W** — alles darunter
-          behandelt die Box als „unbegrenzt“ (Akku-Leerlauf-Gefahr). Der Befehl
-          geht **beim Loslassen** des Sliders raus (ein Befehl pro Ziehen).
+          **Sicherheit:** Leistungsgrenze 150–800 W — alles darunter behandelt
+          die Box als „unbegrenzt“ (Akku-Leerlauf-Gefahr). Jeder Befehl wird von
+          der Box **quittiert** (Bestätigungs-Zeit siehe Attribut
+          `box_bestaetigung` an Modus/Leistungsgrenze, Entwickler-Werkzeug „Entitäten“).
 
-          **Echter Box-Zustand:** Die Box meldet kein Modus-/Sollwert-Register
-          in der Telemetrie (Stand v1.0.0, ausgemessen). Sie **quittiert** aber
-          jeden Befehl — das Attribut `box_bestaetigung` an Modus und
-          Leistungsgrenze zeigt die Uhrzeit der letzten Box-Bestätigung
-          (91-78-ACK). „Noch keine“ = seit HA-Start noch kein Befehl gesendet.
-
-          **Messwerte:** Ausgangsleistung = gemessener Box-Ausgang (≈ Tasmota).
-          Spannung/Strom/SOC kommen live aus der Telemetrie (alle ~4–5 min).
-          An wechselhaften Tagen (Wolken) schwanken die Werte stark — die Box
-          regelt trotzdem auf die eingestellte Leistungsgrenze.
+          **Modus-Logik (App-Semantik):**
+          - **Lastpriorität + X W:** Box speist X W ein — PV zuerst, Fehlbetrag
+            aus dem Akku, PV-Überschuss lädt den Akku.
+          - **Batteriepriorität + X W:** Akku lädt mit bis zu X W; PV über X W
+            geht ans Haus (Überschuss-Einspeisung; erfahrungsgemäß erst ab
+            ~X + 150 W, weil die Box nur in ≥150-W-Schritten gegenrechnet).
 
           **Nicht verbunden?** 1) AdGuard → Query Log: `logger.dyness.com` muss
           auf die HA-IP (.126) zeigen. 2) Box ~10 s stromlos machen (triggert
-          sofort neuen Verbindungsversuch). 3) `homeassistant.log` nach
+          neuen Verbindungsversuch). 3) `homeassistant.log` nach
           „Dylink-Server lauscht“ durchsuchen.

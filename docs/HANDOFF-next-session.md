@@ -60,6 +60,9 @@ Stand 2026-11-01 MITTAG — **v1.0.0 (Major!): Steuerung + Monitoring sind als b
 ### Ideen geprüft — Entscheidungen
 - **Box-Bypass bei Schwachlicht (<100 W PV direkt ins Haus): abgelehnt.** Architektur PV → Junior Box (MPPT+Akku) → Mikro-WR → Haus kennt KEINEN Software-Bypass (kein Protokoll-Befehl; Datenblatt: keine Nulleinspeisung). Hardware-Umschaltung (PV direkt an Mikro-WR) wäre nötig, aber: DC-Schalter unter Last = Lichtbogengefahr; Mikro-WR bei <100 W nur ~85–90 % Wirkung; Ersparnis <1 kWh/Jahr. Kein Nachverfolgen nötig, außer User fragt erneut.
 
+### 0x17D4-Sub-Typen — Ausgangsleistung nicht durchgängig stabil (NEU 2026-11-01 17:01)
+- Box meldete im 1082B/115r-Frame **281 W**, Tasmota real **167 W** (Batterieprio+Dunkelheit, Batterie deckt Last −19,2 A — der 167-W-Wert ist korrekt und plausibel!). frame_stats zeigt ZWEI 1082er-Varianten: 115r (power_out=281, count=78) + 116r (power_out=0, count=1) — Raster-Rutsch (Parser-Bug beim Stur-Lesen; i+=1 bei unbekanntem Tag → eine Byte-Verschiebung erzeugt 116r und verfälscht Werte). **Offen:** Parser-Trennung nach echtem Frame-Layout (nicht Registrier-Zählen!) oder power_out-Referenz gegen Tasmota/Energiebilanz; bis dahin 0x17D4-Anzeige mit Vorsicht interpretieren (Tasmota ist der Zeuge). Auch der Gauge im Dashboard zeigt dann den falschen Wert — User-Sichtcheck nötig.
+
 ### Alt-Backlog
 - nocode-Automations-GUI (Watchdog/Regeln im UI statt YAML).
 - Veröffentlichungs-Redaktion: Default-Login `solarhub…` + Geräte-S/N in `tools/real_server_probe.py`/`ctl_150.hex` — User entscheidet.
