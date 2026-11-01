@@ -56,8 +56,57 @@ views:
           - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
             name: Modus
           - entity: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
-            name: Leistungsgrenze
-            type: slider
+            name: Leistungsgrenze (klicken = Zahl eingeben)
+
+      - type: grid
+        columns: 5
+        square: false
+        cards:
+          - type: button
+            name: "150 W"
+            tap_action:
+              action: perform-action
+              perform_action: number.set_value
+              target:
+                entity_id: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+              data:
+                value: 150
+          - type: button
+            name: "200 W"
+            tap_action:
+              action: perform-action
+              perform_action: number.set_value
+              target:
+                entity_id: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+              data:
+                value: 200
+          - type: button
+            name: "300 W"
+            tap_action:
+              action: perform-action
+              perform_action: number.set_value
+              target:
+                entity_id: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+              data:
+                value: 300
+          - type: button
+            name: "500 W"
+            tap_action:
+              action: perform-action
+              perform_action: number.set_value
+              target:
+                entity_id: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+              data:
+                value: 500
+          - type: button
+            name: "800 W"
+            tap_action:
+              action: perform-action
+              perform_action: number.set_value
+              target:
+                entity_id: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+              data:
+                value: 800
 
       - type: grid
         columns: 3
