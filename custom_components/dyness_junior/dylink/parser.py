@@ -33,7 +33,7 @@ def parse_config_report(payload: bytes) -> dict:
     return info
 
 
-_TAG_INT32 = (0x49, 0x4C)   # int32 BE (4 Bytes) — z. B. 0x1770 (Soll), 0x17D4 (Ausgang)
+_TAG_INT32 = (0x49, 0x4C)   # int32 BE (4 Bytes) — z. B. 0x17D4 (Ausgang), 0x238C (Kapazität)
 _TAG_INT16 = (0x53,)        # int16 BE, ab Wertbeginn (Bytes 1-2) — z. B. 0x0320 (SOC)
 _TAG_FLOAT = (0x46,)        # float32 BE — z. B. 0x025C (Volt), 0x02BC (Ampere)
 
@@ -77,6 +77,10 @@ SOH_REGISTER = 0x04B0
 # Gemessen am 2026-10-31 (Relay-Mitschnitt, Differenztest 250→200→150 W):
 VOLTAGE_REGISTER = 0x0258    # tag 0x46, V (16,2-16,4 V, gemessen)
 CURRENT_REGISTER = 0x02BC    # tag 0x46, A, negativ = Entladen (ca. -9 A)
-LIMIT_REGISTER = 0x1770      # tag 0x49, Leistungs-Sollwert W (folgt Writes exakt)
+LIMIT_REGISTER = 0x1770      # tag 0x49 — KEIN Sollwert-Read-back! Gemessen 2026-11-01:
+                             # Bilanz-/Netto-Leistung, schwankt -244…+18 W bei festem Soll
+                             # 150/200 W (Wert folgt Writes NICHT). Nur Plausibilitäts-
+                             # Konstante: echte 150-800-W-Sollwerte (falls je ein Frame
+                             # sie traegt) sollen durch den Filter (sensor.py) dürfen.
 POWER_REGISTER = 0x17D4      # tag 0x49, Ausgangsleistung AC W (matcht Tasmota)
 CAPACITY_REGISTER = 0x238C   # tag 0x49, Nennkapazität Wh (2000)

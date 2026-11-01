@@ -49,11 +49,17 @@ class DynessPowerLimitNumber(NumberEntity):
 
     @property
     def native_value(self) -> float | None:
-        # Read-back über Telemetrie-Register 0x1770 (Leistungs-Sollwert der Box),
-        # Fallback: zuletzt gesetzter Wert.
+        # Read-back: 0x1770 ist KEIN stabiler Sollwert (gemessen 2026-11-01:
+        # Bilanz-/Netto-Leistung, schwankt negativ bis positiv, unabhängig vom
+        # Soll). Der Plausibilitäts-Filter (150-800 W) lässt echte Sollwerte
+        # durch; sonst "zuletzt gesetzter Wert" (bestätigt via 91-78-ACK).
         if self._hub.soll is not None:
             return float(self._hub.soll)
         return float(self._hub.power)
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        return {"box_bestaetigung": self._hub.command_confirmed_at or "noch keine"}
 
     async def async_set_native_value(self, value: float) -> None:
         power = int(value)

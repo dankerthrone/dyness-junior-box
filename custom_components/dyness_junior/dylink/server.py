@@ -56,6 +56,9 @@ class DylinkServer:
         # Register-Anzahl, aber unterschiedliche Bedeutung desselben Registers).
         self.on_registers: Callable[[int, dict], None] | None = None
         self.on_report: Callable[[dict], None] | None = None
+        # 91-78-ACK der Box = der letzte injizierte Steuerbefehl wurde ausgefuehrt
+        # (einziger nachweisbarer Read-back bei ent-cloudter Box).
+        self.on_command_ack: Callable[[], None] | None = None
 
     # --- Lifecycle -----------------------------------------------------
     async def start(self) -> None:
@@ -177,6 +180,12 @@ class DylinkServer:
                 await writer.drain()
                 if self.on_report:
                     self.on_report(parser.parse_config_report(p))
+                # Config-Report auch als Register best-effort scannen — er kommt
+                # JEDEN Reconnect-Zyklus; ein evtl. Modus-/Schedule-Register lebt
+                # hier, nicht in den Telemetrie-Frames (0x1900 blieb bei Mode-17-
+                # Test 16; gemessen 2026-11-01).
+                if self.on_registers:
+                    self.on_registers(ln, parser.parse_registers(p))
             elif ln > 100:
                 # Telemetrie/Register
                 writer.write(frames.build_ack_telem(serial))
@@ -194,6 +203,8 @@ class DylinkServer:
                 pass  # config-ack der Box — keine Antwort nötig
             elif tag == b"\x91\x78":
                 _LOGGER.info(">>> 91-78-ACK der Box (Befehl ausgefuehrt)")
+                if self.on_command_ack:
+                    self.on_command_ack()
             else:
                 _LOGGER.debug("unbekanntes Frame (%sB %s)", ln, tag.hex())
         except Exception as exc:  # noqa: BLE001

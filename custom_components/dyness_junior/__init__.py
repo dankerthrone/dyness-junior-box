@@ -11,6 +11,7 @@ Siehe README.
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 
 import voluptuous as vol
 
@@ -72,6 +73,10 @@ class DynessHub:
         # Diagnose: Frame-Statistik pro Register-Karten-Größe (Frame-Typ-Erkennung).
         # key = Anzahl geparster Register; Inhalt = count/last/Interesse-Register.
         self.frame_stats: dict = {}
+        # 91-78-ACK der Box (letzter bestätigter Steuerbefehl) — der einzige
+        # nachweisbare Read-back (ent-cloudte Box, gemessen 2026-11-01: kein
+        # Modus-/Sollwert-Register in der Telemetrie).
+        self.command_confirmed_at: str | None = None
 
     @property
     def unique_id(self) -> str:
@@ -96,6 +101,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     server = DylinkServer(serial, host=listen_ip, port=port)
     hub = DynessHub(hass, entry, server)
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = hub
+
+    def _on_command_ack() -> None:
+        """Box hat den letzten 00-78 bestätigt — Zustand ist echt."""
+        hub.command_confirmed_at = datetime.now().strftime("%H:%M:%S")
+        if hub.power_entity is not None:
+            hub.power_entity.async_write_ha_state()
+        if hub.mode_entity is not None:
+            hub.mode_entity.async_write_ha_state()
+
+    server.on_command_ack = _on_command_ack
 
     try:
         await server.start()

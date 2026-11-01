@@ -56,6 +56,10 @@ class DynessModeSelect(SelectEntity):
     def current_option(self) -> str | None:
         return MODE_OPTIONS.get(self._hub.mode)
 
+    @property
+    def extra_state_attributes(self) -> dict:
+        return {"box_bestaetigung": self._hub.command_confirmed_at or "noch keine"}
+
     async def async_select_option(self, option: str) -> None:
         mode = {v: k for k, v in MODE_OPTIONS.items()}[option]
         self._hub.mode = mode

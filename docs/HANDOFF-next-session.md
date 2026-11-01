@@ -1,58 +1,53 @@
-# Handoff — nächste Session: Real-State (Mode/Power) + Float-Sensoren
+# Handoff — nächste Session: Dashboard-Aufräumen + Temperatur-Sensoren
 
-Stand 2026-11-01 MORGEN — **🏆 LOKALES MONITORING KOMPLETT LIVE (v0.1.12)!** Alle Sensoren füllen sich im echten HAOS-Betrieb: Firmware `RSW_14002_2_V4.0.181`, SOC (0x0320 — 21 % nach Nacht-Entladung), SOH 100, Spannung (0x0258, 16,39 V), Strom (0x02BC, +9,8 A beim Laden), Ausgangsleistung (0x17D4 = Tasmota!), Leistungsgrenze-Read-back (0x1770). Die Box-Dialog-Kette ist komplett: **Banner GERAHMT (v0.1.11) + Pusher ab Verbindung + Push-Paar direkt nach Config-ACK (v0.1.12)** — plus schon vorher: Bind-Erkennung `>= 19` (v0.1.9), BindACK `a1 93` + Zeitsync dynamisch (v0.1.8), 39-B-Pushes (v0.1.10), Idle-Close 12 s (v0.1.6). **Nächste Goals: (1) Modus-Read-back** (0x1900 verworfen; Kandidat: 1082/1088-B-Frames — wurden NIE live gesehen, evtl. bei bestimmten Zuständen senden), **(2) Dashboard-Karten** (SOC/Ausgangsleistung/Spannung — docs/dashboard.yaml), **(3) Temperatur-Sensoren** (0x1af4/0x1b58 experimentell), (4) nocode-GUI (Backlog). Relays auf MM gestoppt; Rewrite nur logger.dyness.com → .126; Joplin-Spiegel nach App-Start nachziehen (Worklog-Datei ist Quelle).
+Stand 2026-11-01 MITTAG — **v1.0.0 (Major!): Steuerung + Monitoring sind als bewiesen markiert.** Alle Sensoren live, Steuerung ent-cloudt (00-78 → Tasmota-Verifikation), Frame-Typen getrennt. **Heutige Durchbrüche:** (1) **Frame-Längen-Schlüssel:** echte Telemetrie-Frames sind 1082 B (115 Register: SOC/SOH/Spannung/Strom/0x17D4-Ausgang/CAPACITY…) und 1088 B (123 Register: Zellspannungen, SOC-Duplikate 0x36B0/0x3520, Temperaturen, 0x4588 128↔64). (2) **0x1770 enttarnt — KEIN Sollwert:** Bilanz-/Netto-Leistung, springt −244…+18 W bei FESTEM Soll 150/200 W (Wert folgt Writes NICHT); Plausibilitäts-Filter (150–800) schluckt den Megawatt-Unsinn (User-Befund „5-MW-Skala" = −169 W unsigned gelesen). (3) **Modus-Read-back nicht in der Telemetrie:** 0x1900 blieb bei Mode-17-Test 16 (4×1082er-Sichtungen); sichtbarer Modus-Unterschied ist real (Tasmota 134→323 W bei Mode 17/Last-Deckung→0,4 W), aber KEIN Register meldet ihn. → **v1.0.0-Ansatz: 91-78-ACK der Box = der einzige nachweisbare Read-back** (Attribut `box_bestaetigung` an Modus+Leistungsgrenze; Config-Report 91 71 wird ab sofort auch als Register best-effort gescannt — letzter möglicher Ort). (4) 0x17D4 = Ausgangsleistung VERIFIZIERT (Tasmota 323↔336 W synchron). (5) Tasmota misst STABILEN Box-Ausgang (14 Messungen: 133,6–136,0 W), Netto-Schwankungen sind Wetter/PV-bedingt (Batterie puffert; current +19 A…−1,6 A).
+
+**Nächste Goals: (1) Dashboard-Karten** (SOC/Ausgangsleistung/Spannung ins docs/dashboard.yaml + install_dashboard.py, User-Wunsch ausstehend), **(2) Temperatur-Sensoren** (0x1AF4/0x1B58 + 0x47E0/0x48A8/0x4A38/0x4B00 = 65,0 konstant, 0x4A9C=−20,0 — experimentell), (3) Config-Report-Register-Scan auswerten (steckt der Modus im 475er?), (4) nocode-GUI (Backlog).
 
 ## Wo steht was (Gedächtnis der Maschine)
 
 | Ort | Inhalt |
 |---|---|
-| `~/dyness-junior-box/` | Repo `dankerthrone/dyness-junior-box` (public). Integration in `custom_components/dyness_junior/`, Protokoll-Lib in `dylink/`, Doku in `docs/` (ROADMAP, DNS-MITM, APK-Analyse), Werkzeuge in `tools/` |
-| `~/dyness-probe/` | lokale Probe-Werkzeuge + Mitschnitte: `dyness_probe.py` (Cloud-API, Creds in `config.json` — **nie durch den Chat**), `relay_5005_full.log` (Roh-Captures, NICHT im Repo), `ctl_150.hex` (Quelle der generierten Frames), `dylink_server_v*.py` (Fake-Server-Entwicklung) |
+| `~/dyness-junior-box/` | Repo `dankerthrone/dyness-junior-box` (public). Integration in `custom_components/dyness_junior/`, Protokoll-Lib in `dylink/`, Doku in `docs/`, Werkzeuge in `tools/` |
+| `~/dyness-probe/` | lokale Probe-Werkzeuge + Mitschnitte (`dyness_probe.py` Cloud-API, Creds in `config.json` — **nie durch den Chat**; `ctl_150.hex` Frame-Quelle) |
 | `~/WORKLOG.md` + Joplin-Notiz `9dc077a80f4a48fa87a28c89c64b8824` | kompletter Tageslauf |
 | Skill `dyness-junior-box` | Protokoll-Referenz (Dylink, 00-78, Register, IPs) — **beim Session-Start laden** |
-| MM = 192.168.178.146 | Raspi 3B+; darauf läuft noch das TCP-Relay (Port 5005+1883 → echte Cloud) als Hintergrundprozess — beim HAOS-Test **stoppen**, damit nur HA die Box bedient |
+| MM = 192.168.178.146 | Raspi 3B+; Relays sind GESTOPPT — nur HA (.126) bedient die Box |
 
-## Wahrheitstabelle (Stand 10:50 — alles an echter Hardware gemessen)
+## Wahrheitstabelle (Stand 11:xx — alles an echter Hardware gemessen)
 
-- Box = Client auf `logger.dyness.com:5005` (Dylink, 4-Byte-Längen-Frames, ~14-s-Reconnect). **MQTT/1883 ist ein TOTPFAD.** Live-Daten gehen zusätzlich an `cloud.raymoniot.com:9002` (HTTP, plaintext) — MITM-Ziel für später.
-- Login: `10 <SN> 91 00 solarhub solarhub@123456` (Default-Creds im Gerät) → Server: Banner + `10 <SN> 91 00 01`.
-- Bind `10 <SN> 91 22` → BindACK `…91 22 00 00 01 a1 91 <3B-Token>` + Zeitsync `00 77 …`; Box quittiert `91 87 …`.
-- Config-Report `91 71` (~475 B) → ACK `99 71 01`. Telemetrie (>100 B) → ACK `99 04 01`.
-- **Steuerbefehl `00 78`:** SetWorkMode `20 d0 49 <mode> <p/8>` (mode 16→`10`, 17→`11`, 255→`ff`; p = W/8 gerundet, 150→`13`); SetBase-DOD `19 c8 49 <dod>` (dezimal-hex). Box bestätigt mit `10 <SN> 91 78 …`. **Bewiesen:** 200 W → 183 W an der Tasmota, 150 W → 138 W.
-- **150 W ist harte Untergrenze** — darunter = „unbegrenzt" (Akku-Leerlauf!). Integration erzwingt 150 W als Minimum (s. `const.py`).
-- DOD 95 greift nachweislich (Batterie lief nachts auf 13 %).
-- Box-Power-Cycle = 10 s Strom weg; nach Reconnect ~1 min anliegen. Nach vielen Fehlversuchen geht die Box in Backoff (minutenlang) — Power-Cycle triggert sofort neu.
+- Box = Client auf `logger.dyness.com:5005` (Dylink, 4-Byte-Längen-Frames, ~14-s-Reconnect). MQTT/1883 = Totpfad.
+- Login `10 <SN> 91 00 solarhub solarhub@123456` → Banner + `10 <SN> 91 00 01`. Bind `91 22` → BindACK `a1 93`. Config-Report `91 71` → `99 71 01`. Telemetrie → `99 04 01`. Steuerbefehl `00 78` → Box-ACK `91 78`.
+- **Telemetrie-Frame-Typen (v1.0.0, Frame-Längen-Schlüssel `ln`):** 1082 B/115r = SOC(0x0320), SOH(0x04B0), Spannung(0x0258), Strom(0x02BC), Ausgang(0x17D4), 0x1900(=16 konstant), 0x1770(=Bilanz, KEIN Sollwert); 1088 B/123r = Zellspannungen (~3,3 V), SOC-Duplikate 0x36B0/0x3520, Temperaturen, 0x300C=2, 0x4524=14, 0x4588=128/64. Kadenz: je Typ ~alle 4-5 min, i. d. R. als Paar.
+- **0x1770 = Bilanz-/Netto-Leistung** (negativ/positiv, springt unabhängig vom Soll) — der frühere „Sollwert-Read-back" (v0.1.7) war eine Fehlinterpretation eines anderen Frame-Kontexts.
+- **Kein Modus-/Sollwert-Register in der Telemetrie gefunden** (0x1900, 0x300C, 0x4524, 0x4588 alle konstant über Mode-16/17-Tests). Einziger Read-back = 91-78-ACK (v1.0.0-Attribut `box_bestaetigung`).
+- Steuerbefehl: SetWorkMode `20 d0 49 <mode> <p/8>` (16→`10`, 17→`11`, 255→`ff`; p = W/8, 150→`13`); SetBase-DOD `19 c8 49 <dod>`.
+- **150 W harte Untergrenze** (< 150 = „unbegrenzt", Akku-Leerlauf!).
+- Mode 17 = Last-Deckung: Ausgang folgt der Momentanlast (0,4 W bei keiner Last; 323 W bei Last), über das Limit hinaus — Testfenster-Fallstrick.
+- DOD 95 greift (nachts bis 13 %). Tasmota 192.168.178.119 misst den Box-Ausgang stabil (Soll − ~15 W Verluste; Assembly: ±3 W Messrauschen, KEINE Netto-Sprünge).
+- Box-Power-Cycle = 10 s Strom weg; bei Backoff-Dauern nur Power-Cycle hilft.
 
 ## Testplan nächste Session (Reihenfolge)
 
-1. **Skill laden:** `skill_view(dyness-junior-box)` (wurde evtl. aus dem Kontext komprimiert).
-2. **MM-Relay stoppen** (Port 5005/1883-Proxys auf .146 killen — PIDs per `ss -tlnp | grep -E ":5005|:1883"` ermitteln). Box läuft dann ins Leere → Backoff, egal.
-3. **Integration auf HAOS bringen:** Auf dem Laptop: `git -C ~/dyness-junior-box push` (falls neue Commits); dann im HA-WebUI: HACS → Integrationen → ⋮ → Benutzerdefinierte Repositories → `https://github.com/dankerthrone/dyness-junior-box` (Kategorie **Integration**) → installieren → HA neu starten.
-4. **Integration hinzufügen:** Geräte & Dienste → „Dyness Junior Box (Local)" → S/N `R07E8546681A0121`, Port 5005, Bind 0.0.0.0.
-5. **DNS-Rewrite umbiegen:** AdGuard (Filter-Tab!) `logger.dyness.com` → **HA-IP** (statt .146). Box-Power-Cycle. Erwartung: HA-Logs (`homeassistant.log`, Stichwort `Dylink-Server lauscht`), Sensor „Verbindung" = an. Fehlerbilder: (a) Port 5005 belegt (ConfigEntryNotReady) — jemand anderes lauscht; (b) keine Verbindung → `nslookup logger.dyness.com` prüfen (muss HA-IP zeigen), Box-Power-Cycle wiederholen.
-6. **Steuer-Test an echter Box (Vorsicht!):** Service `dyness_junior.set_workmode` mit identischem Ist-Wert (150 W / 16) testen → HA-Log „gesendet"; dann kurz 200 W, Tasmota (192.168.178.119, `Status 8`) sollte ~183 W zeigen; dann zurück auf 150 W. **Test-Hygiene: erst Ist-Wert-identischer Write, nie <150 W.**
-7. **SOC-Ground-Truth:** Telemetrie-Register (Parser `0x04b0` = SOC-Heuristik) gegen Cloud-API (`~/dyness-probe/dyness_probe.py realtime`, ~5 min Toleranz) abgleichen → Heuristik bestätigen oder korrigieren (`parser.py`).
-8. **Falls Zeit:** 9002-Capture (Rewrite `cloud.raymoniot.com` → Proxy → Mitschnitt) für den Rest-Datenpfad.
+1. **Skill laden:** `skill_view(dyness-junior-box)` falls komprimiert.
+2. **v1.0.0-HACS-Update** (falls ausstehend): HACS → Integrationen → Dyness → ⋮ → Re-download; HA-Restart per Service `homeassistant.restart` (HTTP 000 = erwartet).
+3. **frame_stats lesen** (SOC-Entity-Attribut, REST): Config-Report (`~475B/?r`) — wenn der jetzt als `X B/r` in der Statistik auftaucht, prüfen: trägt er 0x1900/0x1770/Modus-Werte? Das ist der letzte ausstehende Modus-Kandidat.
+4. **Dashboard-Aufräumen (User-Wunsch):** `docs/dashboard.yaml` + `docs/dashboard-cards.yaml` pflegen (SOC-/Ausgangsleistungs-/Spannungs-Karten), `tools/install_dashboard.py` ausführen, Entity-IDs gegen `/api/states` abgleichen (nie raten!).
+5. **Temperatur-Sensoren:** 0x1AF4/0x1B58 (Telemetrie?) + großes 1088er-Raster (0x47E0/0x48A8/0x4A38/0x4B00 = 65,0; 0x4A9C = −20,0) — Werte über Zeit gegen SOC/Strom korrelieren; dann Sensoren in sensor.py.
+6. **Falls Zeit:** nocode-Automations-GUI (Backlog).
 
 ## Stolperfallen (gelernt)
 
-- **DNS-Rewrite-Falle:** `logger.dyness.com` muss im AdGuard (und ggf. FritzBox-DNS) auf HA zeigen; solange sie auf .146 zeigt, erreicht die Box HA nicht, obwohl die Integration läuft.
-- **Zwei Server = Verwirrung:** Nur EIN Server für die Box: entweder HA-Integration ODER MM-Relay, nie beide im Rewrite.
-- **Relay-Timeline:** Solange das MM-Relay steht, ist die Box „in der Cloud" (App online). Nach Umstellung auf HA zeigt die App „offline" — gewollt.
-- Port 5005 binden: HA-Integration läuft im HA-Prozess und darf binden (kein Root nötig); bei Fehler `Port belegt` → andere Dienste prüfen.
-- Bei HAOS-Fehlern: `homeassistant.log` via HA-WebUI (Einstellungen → System → Protokolle) — kein SSH nötig.
-- Commits: Repo-Identität ist `Timon <deine@email.de>` (Placeholder) — user-Entscheidung, ob auf GitHub-noreply umgestellt wird. Neues pushen: `git add -A && git commit && git push`.
-
-## Zustand bei Session-Ende (zweite Hälfte, 2026-10-31) — komprimiert
-
-- **Releases:** v0.1.0 (HACS-Install-Fix: Repo hatte KEINE Releases — HACS braucht Release/Tag!), v0.1.1 (S/N-Platzhalter aus Config-Flow entfernt), v0.1.2 (Service-Schemas → Felder in Tools→Actions), v0.1.3 (Select-Entity Modus + Number-Entity Leistungsgrenze/Slider). Releaseroutine: manifest-Version bumpen → push → `gh release create <v>`.
-- **MM-Relay (.146) dauerhaft gestoppt** (tcp_proxy 5005/1883 gekillt, kein Autostart). DNS-Rewrite `logger.dyness.com` → HA .126. Steuer-Beweis: identischer 150-W-Write → Tasmota 133 W.
-- **⛔ OFFENER BEFUND bei v0.1.3-UI-Test:** Tasmota 0.4 W, obwohl Cloud-API realtime **SOC 100 %** meldet (16.81 V, SOH 100) → Akku VOLL, trotzdem 0 W → Verdacht: Box steht im **Shutdown-Modus** (Mode-255-Test aus der UI?). Recovery: Modus auf Lastpriorität + 150 W; wenn weiter 0 W → Box-Power-Cycle (10 s Strom weg). Vor jeder SOC-Arbeit: Box-Zustand klären!
-- **Ground-Truth-Anker:** SOC 100 % (2026-10-31 ~16:00, Cloud-API) zum Vergleich mit Telemetrie-Dekodierung notiert.
-- **Real-State-Problem:** Cloud-API bietet kein Read-back (status→null); einzig mögliche Quelle für echten Modus/Leistung/SOC = Telemetrie-Register der Box → genau das ist das nächste Session-Ziel. User-Kritik: „Slider sollen echten Box-Zustand zeigen“ — angenommen und ins Ziel übernommen.
+- **DNS-Rewrite** `logger.dyness.com` → HA .126 im AdGuard; FritzBox beantwortet aus eigenem Cache mit echten NLB-IPs → Direkt-Query an .126:53 prüfen; FritzBox-Neustart leert Cache.
+- **Nur EIN Server** für die Box (HA-Integration ODER MM-Relay, nie beide).
+- **Megawatt-Anzeige:** int32 wird unsigned geparst — Plausibilitätsfilter (150–800 W) in sensor.py ist der Schutz; bei negativen Werten NICHT den Filter schwächen, sondern Semantik prüfen.
+- **REST-Register-Sampling verliert kleine Frames** (Attribut zeigt nur den letzten Frame; 1082/1088er überdecken alles, SOC-Frames alle ~4-5 min kurz sichtbar) — frame_stats im HA-Prozess ist die WAHRHEITSQUELLE, nicht REST-Polling.
+- **Test-Hygiene:** erst Ist-Wert-identischer Write, nie <150 W, kurze Fenster, Worklog nach jedem Test. User-Konsens für Modus-/DOD-Tests (einmaliges Schema freigegeben).
+- Wetter: PV-Einstrahlung schwankt sekündlich (diffus↔voll) — Leistungs-Absolutwerte nie als feste Erwartung; nur Register-Diffs und Tasmota-Grob-Signale verwenden.
+- **Versionsstrategie (User-Wunsch):** bewiesene Funktionalität = Major. Nächstes Feature-Release → Version +1.0-Schritt, nicht 0.1.x.
 
 ## Nach dieser Session (Backlog, User-Wünsche)
 
-- nocode-Automations-GUI (neue Session, frischer Kopf) — Idee: Watchdog/Regeln im UI statt YAML.
-- Veröffentlichungs-Redaktion: Default-Login `solarhub…` + Geräte-S/N liegen in `tools/real_server_probe.py`/`ctl_150.hex` — User entscheidet, ob redigiert.
-- Langfristig: statische Server-IP der Box bei Inbetriebnahme (würde DNS-Regel überflüssig machen); evtl. Anker-Solix-Muster (Lib + Integration) als Publikations-Vorbild.
+- nocode-Automations-GUI (Watchdog/Regeln im UI statt YAML).
+- Veröffentlichungs-Redaktion: Default-Login `solarhub…` + Geräte-S/N in `tools/real_server_probe.py`/`ctl_150.hex` — User entscheidet.
+- Langfristig: statische Server-IP der Box bei Inbetriebnahme (DNS-Regel überflüssig); evtl. Anker-Solix-Muster als Publikations-Vorbild.
