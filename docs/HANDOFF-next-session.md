@@ -48,6 +48,18 @@ Stand 2026-11-01 MITTAG — **v1.0.0 (Major!): Steuerung + Monitoring sind als b
 
 ## Nach dieser Session (Backlog, User-Wünsche)
 
+### UI-Überholung (User-Review 2026-11-01, nächster Major v1.1.0 — NUR Doku, nichts umgesetzt)
+- **Ausgangs-Gauge-Skala falsch:** zeigt 0–50 MW statt 0–800 W (HQ-YAML hat min 0 max 800 — Ursache klären, evtl. HA-Rendering/Cache; ggf. Skala −800…+800 als Bilanz diskutieren: negativ = Abgabe ans Haus, positiv = Laden).
+- **Steuerung-Kachel: roter „configuration error“** unter dem Dropdown (Ursache klären; sehr wahrscheinlich `type: slider` in der entities-Karte oder Select-Schema).
+- **Dropdown + Buttons redundant → nur Buttons, aber aktiver Modus FARBLICH markiert** (User-Wunsch: das aktive „Lastpriorität“ leuchtet z. B. grün). Umzusetzen: Buttons mit `show_state`/Style oder `conditional`-Karten je Modus; Select-Entity kann bleiben (für Automations), nur nicht als Steuer-Element zeigen.
+- **DOD-Button wirkt „funktionslos“** (kein Read-back, set_dod hat nur die 91-78-Quittung — ggf. Quittungs-Feedback anzeigen oder auf Box-Bestätigung verweisen).
+- **Sensor-Verzögerung sichtbar machen:** Ausgang/SOC/Strom aktualisieren nur mit dem 4–5-min-Telemetrie-Takt; im UI „zuletzt aktualisiert“ anzeigen (Messwerte ≠ Steuerung, die sofort quittiert wird).
+- **„(experimentell)“-Suffix entfernen** (SOC/SOH/Spannung/Strom sind validiert): Umbenennen → Entity-ID-Bruch → Dashboard + Automationen MIGRIEREN (IDs `sensor.balkon_…_soc` etc.), erst im selben Release wie Dashboard.
+
+### Ideen geprüft — Entscheidungen
+- **Box-Bypass bei Schwachlicht (<100 W PV direkt ins Haus): abgelehnt.** Architektur PV → Junior Box (MPPT+Akku) → Mikro-WR → Haus kennt KEINEN Software-Bypass (kein Protokoll-Befehl; Datenblatt: keine Nulleinspeisung). Hardware-Umschaltung (PV direkt an Mikro-WR) wäre nötig, aber: DC-Schalter unter Last = Lichtbogengefahr; Mikro-WR bei <100 W nur ~85–90 % Wirkung; Ersparnis <1 kWh/Jahr. Kein Nachverfolgen nötig, außer User fragt erneut.
+
+### Alt-Backlog
 - nocode-Automations-GUI (Watchdog/Regeln im UI statt YAML).
 - Veröffentlichungs-Redaktion: Default-Login `solarhub…` + Geräte-S/N in `tools/real_server_probe.py`/`ctl_150.hex` — User entscheidet.
 - Langfristig: statische Server-IP der Box bei Inbetriebnahme (DNS-Regel überflüssig); evtl. Anker-Solix-Muster als Publikations-Vorbild.
