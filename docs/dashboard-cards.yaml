@@ -1,11 +1,45 @@
-      - type: entities
-        title: Status
-        entities:
-          - entity: binary_sensor.dyness_junior_box_r07e8546681a0121_verbindung
-            name: Verbindung (Box ↔ HA)
-          # SOC/Firmware-Sensoren folgen mit der Telemetrie-Dekodierung
-          # (Sensor-Plattform registriert sie noch nicht — offener Punkt).
+# Nur die KARTEN (für HA-Roh-Editor) — kein title:/views:-Wrapper!
+# Komplett-Version (title/views inklusive) für yaml-Modus/Installer: dashboard.yaml
+      # ── Übersicht: Akku + Ausgang ──────────────────────────────────────
+      - type: grid
+        columns: 2
+        square: true
+        cards:
+          - type: gauge
+            entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_soc_experimentell
+            name: Akku (SOC)
+            min: 0
+            max: 100
+            unit: "%"
+            severity:
+              green: 30
+              yellow: 15
+              red: 5
+          - type: gauge
+            entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_ausgangsleistung
+            name: Ausgang
+            min: 0
+            max: 800
+            unit: W
+            severity:
+              green: 0
+              yellow: 400
+              red: 700
 
+      # ── Messwerte ──────────────────────────────────────────────────────
+      - type: entities
+        title: Messwerte
+        entities:
+          - entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_spannung_experimentell
+            name: Batteriespannung
+          - entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_strom_experimentell
+            name: Batteriestrom (negativ = Entladen)
+          - entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_soh_experimentell
+            name: Batterie-Gesundheit (SOH)
+          - entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_firmware
+            name: Firmware
+
+      # ── Steuerung ──────────────────────────────────────────────────────
       - type: entities
         title: Steuerung
         entities:
@@ -14,27 +48,6 @@
           - entity: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
             name: Leistungsgrenze
             type: slider
-
-      - type: grid
-        columns: 2
-        square: false
-        cards:
-          - type: gauge
-            entity: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
-            name: Leistungsgrenze
-            min: 150
-            max: 800
-            unit: W
-            severity:
-              green: 150
-              yellow: 400
-              red: 650
-          - type: markdown
-            content: |
-              **Skala (10er-Schritte):**
-              150···200···300···400···500···600···700···800 W
-
-              Der Befehl geht **beim Loslassen** des Sliders raus (Maus loslassen / Finger heben) — einmal pro Ziehen, nicht laufend.
 
       - type: grid
         columns: 3
@@ -79,16 +92,34 @@
               data:
                 dod: 95
 
+      # ── Diagnose ───────────────────────────────────────────────────────
+      - type: entities
+        title: Diagnose
+        entities:
+          - entity: binary_sensor.dyness_junior_box_r07e8546681a0121_verbindung
+            name: Verbindung (Box ↔ HA)
+          - entity: update.dyness_junior_box_local_update
+            name: Integration-Update
+
+      # ── Hinweise ───────────────────────────────────────────────────────
       - type: markdown
         content: |
           **Sicherheit:** Der Slider beginnt bei **150 W** — alles darunter
-          behandelt die Box als „unbegrenzt“ (Akku-Leerlauf-Gefahr). Die Werte wirken
-          auf die Gesamt-Ausgangsleistung; die Tasmota (192.168.178.119) zeigt
-          ≈ Soll − ~14 W (150 → ~136 W). Die Box hat **kein Read-back**: Slider
-          und Modus-Dropdown zeigen den zuletzt gesetzten Wert, nicht den
-          tatsächlichen Zustand der Box. „Aus (Shutdown)“ schaltet die Box aus.
+          behandelt die Box als „unbegrenzt“ (Akku-Leerlauf-Gefahr). Der Befehl
+          geht **beim Loslassen** des Sliders raus (ein Befehl pro Ziehen).
 
-          **Nicht verbunden?** 1) AdGuard → Query Log: `logger.dyness.com` muss auf
-          die HA-IP (.126) zeigen. 2) Box ~10 s stromlos machen (triggert sofort
-          neuen Verbindungsversuch). 3) `homeassistant.log` nach
+          **Echter Box-Zustand:** Die Box meldet kein Modus-/Sollwert-Register
+          in der Telemetrie (Stand v1.0.0, ausgemessen). Sie **quittiert** aber
+          jeden Befehl — das Attribut `box_bestaetigung` an Modus und
+          Leistungsgrenze zeigt die Uhrzeit der letzten Box-Bestätigung
+          (91-78-ACK). „Noch keine“ = seit HA-Start noch kein Befehl gesendet.
+
+          **Messwerte:** Ausgangsleistung = gemessener Box-Ausgang (≈ Tasmota).
+          Spannung/Strom/SOC kommen live aus der Telemetrie (alle ~4–5 min).
+          An wechselhaften Tagen (Wolken) schwanken die Werte stark — die Box
+          regelt trotzdem auf die eingestellte Leistungsgrenze.
+
+          **Nicht verbunden?** 1) AdGuard → Query Log: `logger.dyness.com` muss
+          auf die HA-IP (.126) zeigen. 2) Box ~10 s stromlos machen (triggert
+          sofort neuen Verbindungsversuch). 3) `homeassistant.log` nach
           „Dylink-Server lauscht“ durchsuchen.
