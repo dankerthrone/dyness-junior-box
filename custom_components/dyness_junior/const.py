@@ -32,11 +32,12 @@ MODE_LOAD = 16
 MODE_BATTERY = 17
 MODE_SHUTDOWN = 255
 
-# Sensornamen
+# Sensornamen (v1.1.0: "(experimentell)" entfernt — Register 0x0320/0x04B0/0x0258/0x02BC
+# sind seit 2026-10-31 mehrfach gegen Cloud-API + Tasmota validiert)
 SENSOR_CONNECTION = "Verbindung"
 SENSOR_FIRMWARE = "Firmware"
-SENSOR_SOC = "SOC (experimentell)"
-SENSOR_SOH = "SOH (experimentell)"
-SENSOR_VOLTAGE = "Spannung (experimentell)"
-SENSOR_CURRENT = "Strom (experimentell)"
+SENSOR_SOC = "SOC"
+SENSOR_SOH = "SOH"
+SENSOR_VOLTAGE = "Spannung"
+SENSOR_CURRENT = "Strom"
 SENSOR_OUTPUT = "Ausgangsleistung"
