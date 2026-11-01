@@ -33,8 +33,9 @@ Stand 2026-11-01 MITTAG — **v1.0.0 (Major!): Steuerung + Monitoring sind als b
 2. **v1.0.0-HACS-Update** (falls ausstehend): HACS → Integrationen → Dyness → ⋮ → Re-download; HA-Restart per Service `homeassistant.restart` (HTTP 000 = erwartet).
 3. ~~Config-Report-Register-Scan~~ — **ERLEDIGT (v1.0.0, 11:26):** 475B/21r in frame_stats, Interesse-Register = **leer** → kein Modus-/SOC-/Sollwert-Register im Config-Report. **Kein Frame meldet den Modus — Punkt 1 ist abgeschlossen, ACK-Read-back ist die Lösung.**
 4. **Dashboard-Aufräumen (User-Wunsch):** `docs/dashboard.yaml` + `docs/dashboard-cards.yaml` pflegen (SOC-/Ausgangsleistungs-/Spannungs-Karten), `tools/install_dashboard.py` ausführen, Entity-IDs gegen `/api/states` abgleichen (nie raten!).
-5. **Temperatur-Sensoren:** 0x1AF4/0x1B58 (Telemetrie?) + großes 1088er-Raster (0x47E0/0x48A8/0x4A38/0x4B00 = 65,0; 0x4A9C = −20,0) — Werte über Zeit gegen SOC/Strom korrelieren; dann Sensoren in sensor.py.
-6. **Falls Zeit:** nocode-Automations-GUI (Backlog).
+5. **Batterieprio-Semantik final verifizieren (User-App-Zeugnis, braucht Sonne):** Batterieprio + X W setzen → PV-Leistung im Steigen beobachten (Tasmota/current) → ab welchem PV-Wert springt der Ausgang an? Erwartung (User): Überschuss-Einspeisung ab PV > X (bzw. evtl. erst X + ~150 W Delta, Akku-Minimum). Damit 150-W-Delta-Regel belegen/widerlegen — Skill-Baustein danach endgültig absichern.
+6. **Temperatur-Sensoren:** 0x1AF4/0x1B58 (Telemetrie?) + großes 1088er-Raster (0x47E0/0x48A8/0x4A38/0x4B00 = 65,0; 0x4A9C = −20,0) — Werte über Zeit gegen SOC/Strom korrelieren; dann Sensoren in sensor.py.
+7. **Falls Zeit:** nocode-Automations-GUI (Backlog).
 
 ## Stolperfallen (gelernt)
 
