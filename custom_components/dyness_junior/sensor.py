@@ -1,6 +1,8 @@
 """Sensoren der Dyness-Junior-Integration."""
 from __future__ import annotations
 
+import time
+
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -14,9 +16,29 @@ from .const import (
     SENSOR_VOLTAGE,
     SENSOR_CURRENT,
     SENSOR_OUTPUT,
+    MAX_POWER_W,
+    MIN_POWER_W,
     DOMAIN,
 )
 from .dylink import parser
+
+# Register, deren Wert je Frame-Typ erfasst wird (Frame-Typ-Erkennung für
+# den Modus-Read-back: welcher Frame trägt welches Interesse-Register?).
+_INTEREST_REGISTERS = {
+    parser.SOC_REGISTER: "soc",
+    parser.SOH_REGISTER: "soh",
+    parser.VOLTAGE_REGISTER: "voltage",
+    parser.CURRENT_REGISTER: "current",
+    parser.LIMIT_REGISTER: "limit",
+    parser.POWER_REGISTER: "power_out",
+    0x1900: "0x1900",
+    0x300C: "0x300c",
+    0x36B0: "0x36b0",
+    0x36B4: "0x36b4",
+    0x3520: "0x3520",
+    0x4524: "0x4524",
+    0x4588: "0x4588",
+}
 
 
 async def async_setup_entry(
@@ -47,10 +69,26 @@ async def async_setup_entry(
             hub.voltage = regs[parser.VOLTAGE_REGISTER]
         if regs.get(parser.CURRENT_REGISTER) is not None:
             hub.current = regs[parser.CURRENT_REGISTER]
+        # Plausibilität: die Register-Semantik ist NICHT frame-typ-stabil (gemessen
+        # 2026-11-01: 0x1770 lieferte 4294967127 = -169 als unsigned int32 aus einem
+        # anderen Frame-Typ). Nur plausible Werte als echten Box-Zustand übernehmen;
+        # Unsinn lässt den Read-back auf "zuletzt gesetzt" (hub.power) zurückfallen.
         if regs.get(parser.LIMIT_REGISTER) is not None:
-            hub.soll = regs[parser.LIMIT_REGISTER]
+            v = regs[parser.LIMIT_REGISTER]
+            if MIN_POWER_W <= v <= MAX_POWER_W:
+                hub.soll = v
         if regs.get(parser.POWER_REGISTER) is not None:
-            hub.power_out = regs[parser.POWER_REGISTER]
+            v = regs[parser.POWER_REGISTER]
+            if 0 <= v <= 10000:
+                hub.power_out = v
+        # Frame-Statistik: welcher Frame-Typ (Karten-Größe n) trägt welche
+        # Interesse-Register — Grundlage für Modus-Read-back (Frame-Trennung).
+        stats = hub.frame_stats.setdefault(len(regs), {"count": 0, "last": None, "regs": {}})
+        stats["count"] += 1
+        stats["last"] = time.strftime("%H:%M:%S")
+        for key, label in _INTEREST_REGISTERS.items():
+            if key in regs:
+                stats["regs"][label] = regs[key]
         # Attribute (Roh-Register) auch aktualisieren, wenn keine SOC-Register dabei war
         for ent in (soc, soh, volt, curr, outp):
             ent.async_write_ha_state()
@@ -108,6 +146,7 @@ class DynessSocSensor(DynessSensorBase):
         return {
             "hinweis": "experimentell — Register 0x0320, verifiziert gegen Cloud-API",
             "register": {hex(k): v for k, v in sorted(regs.items())},
+            "frame_stats": self._hub.frame_stats,
         }
 
 

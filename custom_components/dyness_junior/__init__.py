@@ -69,6 +69,9 @@ class DynessHub:
         self.mode: int = MODE_LOAD
         self.power_entity = None
         self.mode_entity = None
+        # Diagnose: Frame-Statistik pro Register-Karten-Größe (Frame-Typ-Erkennung).
+        # key = Anzahl geparster Register; Inhalt = count/last/Interesse-Register.
+        self.frame_stats: dict = {}
 
     @property
     def unique_id(self) -> str:
