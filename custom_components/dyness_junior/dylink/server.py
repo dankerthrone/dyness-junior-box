@@ -155,8 +155,10 @@ class DylinkServer:
         tag = p[17:19] if ln >= 19 else p
         try:
             if ln >= 2 and p[0] == 0x10 and b"\x91\x00" in p[:24] and ln < 100:
-                # Login
-                writer.write(frames.BANNER)
+                # Login — Banner GERAHMT senden (4B-Längen-Präfix, wie der echte
+                # Server); roh gesendet blockiert es den Parser der Box (32-KB-
+                # Schein-Frame) und sie liefert keine Daten.
+                writer.write(frames.banner_framed())
                 writer.write(frames.build_login_ack(serial))
                 await writer.drain()
             elif ln > 400 and tag == b"\x91\x71":

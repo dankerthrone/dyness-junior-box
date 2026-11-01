@@ -48,3 +48,14 @@ def build_dod(serial: str, dod_pct: int) -> bytes:
 
 
 BANNER = g.BANNER
+
+
+def banner_framed() -> bytes:
+    """Banner als längen-präfixierter Frame, wie der echte Server ihn sendet.
+
+    Gemessen (2026-10-31, Relay-Mitschnitt): Wire = `00000053 00007f <text>`.
+    Ein UNGERAHMT gesendeter Banner (nur '00 00 7f ...') wirkt für den
+    Frame-Parser der Box wie ein 32-KB-Frame und blockiert ihren Dateneingang
+    — die Box sendet dann keine Config-Reports/Telemetrie.
+    """
+    return len(g.BANNER).to_bytes(4, "big") + g.BANNER
