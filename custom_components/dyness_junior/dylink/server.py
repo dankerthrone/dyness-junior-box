@@ -113,6 +113,9 @@ class DylinkServer:
         self._client_count += 1
         self._clients.add(writer)
         self._set_connected(True)
+        # Pusher sofort starten — die Box ueberspringt den Bind gern (variierende
+        # Frame-Reihenfolge) und bekommt ihre 47B/39B-Pushes sonst nie.
+        self._push_tasks[writer] = asyncio.create_task(self._pusher(writer))
         buf = b""
         try:
             while True:
@@ -163,6 +166,11 @@ class DylinkServer:
                 await writer.drain()
             elif ln > 400 and tag == b"\x91\x71":
                 writer.write(frames.build_ack_cfgrep(serial))
+                # Wie der echte Server: direkt nach dem Config-ACK die Zeit-Pushes
+                # nachschieben (Mitschnitt 18:48: ACK + Push im selben Takt, erst
+                # danach schickt die Box Telemetrie).
+                writer.write(frames.build_time_push(serial))
+                writer.write(frames.build_static_39(serial))
                 await writer.drain()
                 if self.on_report:
                     self.on_report(parser.parse_config_report(p))
@@ -179,8 +187,6 @@ class DylinkServer:
                 writer.write(frames.build_time_push(serial))
                 writer.write(frames.build_static_39(serial))
                 await writer.drain()
-                if writer not in self._push_tasks:
-                    self._push_tasks[writer] = asyncio.create_task(self._pusher(writer))
             elif tag == b"\x91\x87":
                 pass  # config-ack der Box — keine Antwort nötig
             elif tag == b"\x91\x78":
