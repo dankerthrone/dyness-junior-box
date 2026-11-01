@@ -7,6 +7,6 @@
   "issue_tracker": "https://github.com/dankerthrone/dyness-junior-box/issues",
   "iot_class": "local_polling",
   "requirements": [],
-  "version": "0.1.13",
+  "version": "0.1.14",
   "homeassistant": "2024.1.0"
 }

@@ -51,7 +51,10 @@ class DylinkServer:
         # Callbacks (werden von HA gesetzt)
         self.on_state: Callable[[dict], None] | None = None
         self.on_telemetry: Callable[[bytes], None] | None = None
-        self.on_registers: Callable[[dict], None] | None = None
+        # (payload_len, regs): die PAYLOAD-LAENGE ist der Frame-Typ-Schluessel
+        # (gemessen 2026-11-01: verschiedene Original-Frames erzeugen gleiche
+        # Register-Anzahl, aber unterschiedliche Bedeutung desselben Registers).
+        self.on_registers: Callable[[int, dict], None] | None = None
         self.on_report: Callable[[dict], None] | None = None
 
     # --- Lifecycle -----------------------------------------------------
@@ -179,7 +182,7 @@ class DylinkServer:
                 writer.write(frames.build_ack_telem(serial))
                 await writer.drain()
                 if self.on_registers:
-                    self.on_registers(parser.parse_registers(p))
+                    self.on_registers(ln, parser.parse_registers(p))
                 if self.on_telemetry:
                     self.on_telemetry(p)
             elif tag == b"\x91\x22":

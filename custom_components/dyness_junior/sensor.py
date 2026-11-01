@@ -59,7 +59,7 @@ async def async_setup_entry(
         hub.firmware = info.get("firmware")
         fw.async_write_ha_state()
 
-    def _on_registers(regs: dict) -> None:
+    def _on_registers(ln: int, regs: dict) -> None:
         hub.registers = regs
         if regs.get(parser.SOC_REGISTER) is not None:
             hub.soc = regs[parser.SOC_REGISTER]
@@ -81,14 +81,22 @@ async def async_setup_entry(
             v = regs[parser.POWER_REGISTER]
             if 0 <= v <= 10000:
                 hub.power_out = v
-        # Frame-Statistik: welcher Frame-Typ (Karten-Größe n) trägt welche
-        # Interesse-Register — Grundlage für Modus-Read-back (Frame-Trennung).
-        stats = hub.frame_stats.setdefault(len(regs), {"count": 0, "last": None, "regs": {}})
+        # Frame-Statistik: welcher Frame-Typ (PAYLOAD-Länge + Karten-Größe) trägt
+        # welche Interesse-Register — Grundlage für Modus-Read-back. Erkenntnis
+        # 2026-11-01: 0x1770 ist NICHT frame-stabil (negativer Wert = Einspeisung/
+        # Ladung in einem anderen Sub-Typ mit gleicher Register-Anzahl).
+        stats = hub.frame_stats.setdefault(
+            f"{ln}B/{len(regs)}r",
+            {"count": 0, "last": None, "regs": {}, "limit_hist": []},
+        )
         stats["count"] += 1
         stats["last"] = time.strftime("%H:%M:%S")
         for key, label in _INTEREST_REGISTERS.items():
             if key in regs:
                 stats["regs"][label] = regs[key]
+        if parser.LIMIT_REGISTER in regs:
+            stats["limit_hist"].append(regs[parser.LIMIT_REGISTER])
+            stats["limit_hist"] = stats["limit_hist"][-4:]
         # Attribute (Roh-Register) auch aktualisieren, wenn keine SOC-Register dabei war
         for ent in (soc, soh, volt, curr, outp):
             ent.async_write_ha_state()
