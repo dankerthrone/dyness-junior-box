@@ -39,18 +39,12 @@ views:
 
       # ── Messwerte (live, Takt ~4–5 min) ────────────────────────────────
       - type: markdown
-        content: >
+        content: |
           **Messwerte** (Gerät sendet alle ~4–5 min)
 
-          - **Akku SOC:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_soc") }} %
-            — Stand vor
-            {{ (now().timestamp() - as_timestamp(states.sensor.balkon_dyness_junior_box_r07e8546681a0121_soc.last_updated)) | round(0) }}
-            s
-          - **Spannung:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_spannung") }} V ·
-            **Strom:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_strom") }} A
-            (negativ = Entladen)
-          - **Batterie-Gesundheit:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_soh") }} %
-            · **Ausgang:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_ausgangsleistung") }} W
+          * **Akku SOC:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_soc") }} % — Stand vor {{ (now().timestamp() - as_timestamp(states.sensor.balkon_dyness_junior_box_r07e8546681a0121_soc.last_updated)) | round(0) }} s
+          * **Spannung:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_spannung") }} V · **Strom:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_strom") }} A (negativ = Entladen)
+          * **Batterie-Gesundheit:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_soh") }} % · **Ausgang:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_ausgangsleistung") }} W
 
       # ── Steuerung: Leistungsgrenze ────────────────────────────────────
       - type: entities
@@ -111,14 +105,15 @@ views:
 
       # ── Steuerung: Modus (aktiver Modus ist farblich markiert) ────────
       # Jeder Modus existiert doppelt: GRÜN = aktiv, grau = inaktiv.
+      # Bedingungen als is_state()-Templates (robust gegen State-Matching-Probleme).
       - type: grid
-        columns: 3
+        columns: 4
         square: false
         cards:
           - type: conditional
             conditions:
-              - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
-                state: Lastpriorität
+              - condition: template
+                value_template: "{{ is_state('select.balkon_dyness_junior_box_r07e8546681a0121_modus', 'Lastpriorität') }}"
             card:
               type: button
               name: Lastpriorität
@@ -137,8 +132,8 @@ views:
             conditions:
               - condition: not
                 conditions:
-                  - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
-                    state: Lastpriorität
+                  - condition: template
+                    value_template: "{{ is_state('select.balkon_dyness_junior_box_r07e8546681a0121_modus', 'Lastpriorität') }}"
             card:
               type: button
               name: Lastpriorität
@@ -152,8 +147,8 @@ views:
                   option: Lastpriorität
           - type: conditional
             conditions:
-              - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
-                state: Batteriepriorität
+              - condition: template
+                value_template: "{{ is_state('select.balkon_dyness_junior_box_r07e8546681a0121_modus', 'Batteriepriorität') }}"
             card:
               type: button
               name: Batteriepriorität
@@ -172,8 +167,8 @@ views:
             conditions:
               - condition: not
                 conditions:
-                  - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
-                    state: Batteriepriorität
+                  - condition: template
+                    value_template: "{{ is_state('select.balkon_dyness_junior_box_r07e8546681a0121_modus', 'Batteriepriorität') }}"
             card:
               type: button
               name: Batteriepriorität
@@ -187,8 +182,8 @@ views:
                   option: Batteriepriorität
           - type: conditional
             conditions:
-              - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
-                state: Aus (Shutdown)
+              - condition: template
+                value_template: "{{ is_state('select.balkon_dyness_junior_box_r07e8546681a0121_modus', 'Aus (Shutdown)') }}"
             card:
               type: button
               name: Aus (Shutdown)
@@ -207,8 +202,8 @@ views:
             conditions:
               - condition: not
                 conditions:
-                  - entity: select.balkon_dyness_junior_box_r07e8546681a0121_modus
-                    state: Aus (Shutdown)
+                  - condition: template
+                    value_template: "{{ is_state('select.balkon_dyness_junior_box_r07e8546681a0121_modus', 'Aus (Shutdown)') }}"
             card:
               type: button
               name: Aus (Shutdown)
@@ -220,6 +215,14 @@ views:
                   entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
                 data:
                   option: Aus (Shutdown)
+          - type: button
+            name: Entladetiefe 95 %
+            icon: mdi:battery-arrow-down
+            tap_action:
+              action: perform-action
+              perform_action: dyness_junior.set_dod
+              data:
+                dod: 95
 
       # ── Diagnose ───────────────────────────────────────────────────────
       - type: entities
