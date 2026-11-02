@@ -25,6 +25,25 @@
       yellow: 400
       red: 700
 - type: markdown
+  content: '**Modus (Box):**
+
+    {% set ack = state_attr("select.balkon_dyness_junior_box_r07e8546681a0121_modus",
+    "box_bestaetigung") %}
+
+    {% set regs = state_attr("sensor.balkon_dyness_junior_box_r07e8546681a0121_soc",
+    "register") %}
+
+    {% set base = regs.get("0x1900") if regs else none %}
+
+    * **Steuerung (Zeitplan):** {{ states("select.balkon_dyness_junior_box_r07e8546681a0121_modus")
+    }}{% if ack %} — von der Box bestätigt {{ ack }}{% endif %}
+
+    * **Basis-Modus (Box-Register 0x1900):** {% if base == 16 %}Lastpriorität{% elif
+    base == 255 %}Aus (Shutdown){% elif base is not none %}Code {{ base }}{% else
+    %}— (nicht im letzten Telegramm){% endif %}
+
+    '
+- type: markdown
   content: '**Messwerte** (Gerät sendet alle ~4–5 min)
 
 
@@ -235,7 +254,12 @@
     \ + X W:** Box speist X W ein — PV zuerst, Fehlbetrag\n  aus dem Akku, PV-Überschuss\
     \ lädt den Akku.\n- **Batteriepriorität + X W:** Akku lädt mit bis zu X W; PV\
     \ über X W\n  geht ans Haus (Überschuss-Einspeisung; erfahrungsgemäß erst ab\n\
-    \  ~X + 150 W, weil die Box nur in ≥150-W-Schritten gegenrechnet).\n\n**Nicht\
-    \ verbunden?** 1) AdGuard → Query Log: `logger.dyness.com` muss\nauf die HA-IP\
-    \ (.126) zeigen. 2) Box ~10 s stromlos machen (triggert\nneuen Verbindungsversuch).\
-    \ 3) `homeassistant.log` nach\n„Dylink-Server lauscht“ durchsuchen."
+    \  ~X + 150 W, weil die Box nur in ≥150-W-Schritten gegenrechnet).\n\n**Zwei Modus-Ebenen\
+    \ (ausgemessen 02.11.):** „Steuerung (Zeitplan)“ =\nder Modus, den dieses Dashboard\
+    \ setzt (Last-/Batterieprio/Aus; die Box\nbestätigt per Quittung). „Basis-Modus\
+    \ (0x1900)“ = die Basis-Ebene aus\ndem SetBase-Einstellungsblock — die App schreibt\
+    \ dort 16 (Lastprio)\nbzw. 255 (Aus). Steht Basis auf 255, läuft der Zeitplan\
+    \ trotzdem weiter.\n\n**Nicht verbunden?** 1) AdGuard → Query Log: `logger.dyness.com`\
+    \ muss\nauf die HA-IP (.126) zeigen. 2) Box ~10 s stromlos machen (triggert\n\
+    neuen Verbindungsversuch). 3) `homeassistant.log` nach\n„Dylink-Server lauscht“\
+    \ durchsuchen."

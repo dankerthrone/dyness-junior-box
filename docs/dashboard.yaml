@@ -37,6 +37,16 @@ views:
               yellow: 400
               red: 700
 
+      # ── Modus (zwei Ebenen: Steuer-Schedule + Basis-Register 0x1900) ──
+      - type: markdown
+        content: |
+          **Modus (Box):**
+          {% set ack = state_attr("select.balkon_dyness_junior_box_r07e8546681a0121_modus", "box_bestaetigung") %}
+          {% set regs = state_attr("sensor.balkon_dyness_junior_box_r07e8546681a0121_soc", "register") %}
+          {% set base = regs.get("0x1900") if regs else none %}
+          * **Steuerung (Zeitplan):** {{ states("select.balkon_dyness_junior_box_r07e8546681a0121_modus") }}{% if ack %} — von der Box bestätigt {{ ack }}{% endif %}
+          * **Basis-Modus (Box-Register 0x1900):** {% if base == 16 %}Lastpriorität{% elif base == 255 %}Aus (Shutdown){% elif base is not none %}Code {{ base }}{% else %}— (nicht im letzten Telegramm){% endif %}
+
       # ── Messwerte (live, Takt ~4–5 min) ────────────────────────────────
       - type: markdown
         content: |
@@ -249,6 +259,12 @@ views:
           - **Batteriepriorität + X W:** Akku lädt mit bis zu X W; PV über X W
             geht ans Haus (Überschuss-Einspeisung; erfahrungsgemäß erst ab
             ~X + 150 W, weil die Box nur in ≥150-W-Schritten gegenrechnet).
+
+          **Zwei Modus-Ebenen (ausgemessen 02.11.):** „Steuerung (Zeitplan)“ =
+          der Modus, den dieses Dashboard setzt (Last-/Batterieprio/Aus; die Box
+          bestätigt per Quittung). „Basis-Modus (0x1900)“ = die Basis-Ebene aus
+          dem SetBase-Einstellungsblock — die App schreibt dort 16 (Lastprio)
+          bzw. 255 (Aus). Steht Basis auf 255, läuft der Zeitplan trotzdem weiter.
 
           **Nicht verbunden?** 1) AdGuard → Query Log: `logger.dyness.com` muss
           auf die HA-IP (.126) zeigen. 2) Box ~10 s stromlos machen (triggert
