@@ -21,6 +21,9 @@ from .dylink import frames
 
 _LOGGER = logging.getLogger(__name__)
 
+# DOD im Shutdown-Frame: der zuletzt per Service gesetzte User-Wert (95 %).
+_SHUTDOWN_DOD_PCT = 95
+
 MODE_OPTIONS = {
     MODE_LOAD: "Lastpriorität",
     MODE_BATTERY: "Batteriepriorität",
@@ -63,9 +66,15 @@ class DynessModeSelect(SelectEntity):
     async def async_select_option(self, option: str) -> None:
         mode = {v: k for k, v in MODE_OPTIONS.items()}[option]
         self._hub.mode = mode
-        sent = self._hub.server.inject(
-            frames.build_workmode(self._hub.serial, mode, self._hub.power)
-        )
+        if mode == MODE_SHUTDOWN:
+            # Echter Shutdown: SetBaseSetting-Frame (0x1900=ff), wie die App ihn
+            # sendet — SetWorkMode-255 ist wirkungslos (bewiesen 2026-11-02).
+            frame = frames.build_shutdown(
+                self._hub.serial, self._hub.power, _SHUTDOWN_DOD_PCT
+            )
+        else:
+            frame = frames.build_workmode(self._hub.serial, mode, self._hub.power)
+        sent = self._hub.server.inject(frame)
         _LOGGER.info(
             "Modus %s (Leistungsgrenze %s W): %s",
             option,
