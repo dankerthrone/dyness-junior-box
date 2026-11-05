@@ -56,7 +56,10 @@ Die **Dyness Junior Box** (Balkonkraftwerk-Batterie) **lokal steuern und monitor
 
 - ✔ Lokale Steuerung (Leistung/Modus/DOD) — an echter Hardware verifiziert
 - ✔ Lokaler Server-Dialog komplett (Login/Bind/Zeitsync/Config/Telemetrie)
-- 🚧 SOC-/Register-Semantik: experimentell (v0.2-Verifikation gegen Live-Referenz)
+- ✔ SOC/SOH/Spannung/Strom/Ausgangsleistung — gegen Cloud-API + Tasmota validiert
+- 🚧 Temperatur-Sensoren — experimentell (Korrelation läuft)
+- 🚧 Zeitplan-Modus-Read-back — nicht möglich über beobachtetes Protokoll
+  (Basis-Modus 0x1900 ist der einzig real lesbare Modus-Zustand)
 - 🚧 Cloud-Durchreiche-Modus (als Rückfallschalter) — geplant
 
 ## Repo-Layout

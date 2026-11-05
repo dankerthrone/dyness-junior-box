@@ -65,6 +65,14 @@ class DynessModeSelect(SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         mode = {v: k for k, v in MODE_OPTIONS.items()}[option]
+        if mode == MODE_SHUTDOWN and len(self._hub.serial) != 16:
+            # Shutdown frame template is 16-byte-serial-bound; never fake an
+            # "off" state we couldn't send. Keep current selection unchanged.
+            _LOGGER.error(
+                "Shutdown requires a 16-character serial (got %s); selecting "
+                "'%s' ignored, no frame sent.", len(self._hub.serial), option
+            )
+            return
         self._hub.mode = mode
         if mode == MODE_SHUTDOWN:
             # Echter Shutdown: SetBaseSetting-Frame (0x1900=ff), wie die App ihn

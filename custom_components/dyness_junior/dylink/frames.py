@@ -75,7 +75,10 @@ def build_shutdown(serial: str, power_w: int = 200, dod_pct: int = 80) -> bytes:
     """
     sn = serial_bytes(serial)
     if len(sn) != 16:
-        raise ValueError(f"Serial muss 16 Byte sein, ist {len(sn)}")
+        raise ValueError(
+            f"Shutdown frame requires a 16-byte serial, got {len(sn)} bytes "
+            f"({serial!r}). Callers must validate length before calling."
+        )
     _shutdown = bytearray(_SHUTDOWN_TEMPLATE)
     for pos in _SHUTDOWN_SN_POS:
         _shutdown[pos:pos + 16] = sn

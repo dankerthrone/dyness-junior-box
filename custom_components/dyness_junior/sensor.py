@@ -132,7 +132,7 @@ class DynessFirmwareSensor(DynessSensorBase):
 
 
 class DynessSocSensor(DynessSensorBase):
-    """SOC — experimentell (Register-Heuristik 0x0320; Ground-Truth: Cloud-API)."""
+    """SOC — Register 0x0320, validated against Cloud-API + Tasmota."""
 
     _attr_icon = "mdi:battery"
     _attr_name = SENSOR_SOC
@@ -152,7 +152,6 @@ class DynessSocSensor(DynessSensorBase):
         """Roh-Register als Hex-Karte — für die laufende Kalibrierung."""
         regs = self._hub.registers or {}
         return {
-            "hinweis": "experimentell — Register 0x0320, verifiziert gegen Cloud-API",
             "register": {hex(k): v for k, v in sorted(regs.items())},
             "frame_stats": self._hub.frame_stats,
         }
@@ -176,7 +175,7 @@ class DynessSohSensor(DynessSensorBase):
 
 
 class DynessVoltageSensor(DynessSensorBase):
-    """Batteriespannung — Register 0x025C (Float), gegen Cloud-Werte gecheckt."""
+    """Battery voltage — Register 0x0258 (Float), checked against Cloud-API."""
 
     _attr_icon = "mdi:sine-wave"
     _attr_name = SENSOR_VOLTAGE

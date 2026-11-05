@@ -18,7 +18,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PORT
 from homeassistant.core import HomeAssistant, ServiceCall
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError
 
 from .const import (
     DEFAULT_LISTEN_IP,
@@ -141,6 +141,14 @@ def _register_services(hass: HomeAssistant, hub: DynessHub) -> None:
         power = int(call.data["power"])
         mode_raw = call.data.get("mode", MODE_LOAD)
         mode = int(_MODE_LABELS.get(str(mode_raw), mode_raw))
+        if mode == MODE_SHUTDOWN and len(_ser) != 16:
+            # The shutdown frame template is 16-byte-serial-bound; validate
+            # before mutating hub state so we never fake an "off" state that
+            # was not actually sent to the box.
+            raise HomeAssistantError(
+                f"Shutdown requires a 16-character serial"
+                f" (got {len(_ser)}); no frame sent."
+            )
         if power < MIN_POWER_W:
             _LOGGER.warning(
                 "Leistung %s W abgelehnt: < %s W wird von der Box als "
