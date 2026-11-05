@@ -4,6 +4,7 @@ Die **Dyness Junior Box** (Balkonkraftwerk-Batterie) **lokal steuern und monitor
 
 - **Dylink-Protokoll (TCP 5005) entschlüsselt** — die Box verbindet sich aktiv zu `logger.dyness.com`; wer diesen Kanal nachahmt (Fake-Server/MITM), redet direkt mit der Box.
 - **Steuerbefehl `00 78` geknackt**: Leistungslimit, Prioritätsmodus und Entladetiefe werden lokal gesetzt — die Box quittiert mit `91 78` und führt aus (gemessen: 200 W gesetzt → 183 W am Zähler; 150 W → 138 W).
+- **Basis-Modus-Read-back (v2.0.0):** der echte Modus (Register 0x1900, die vom App/SetBaseSetting geschriebene Ebene) wird live in der Modus-Select-Entity angezeigt; der Zeitplan-Modus bleibt protokollseitig unlesbar (ehrlich getrennt). **Experimentelle Temperatur-Sensoren** (`Temperature 1/2`) inklusive.
 - **Home-Assistant-Integration** (`custom_components/dyness_junior`) — Fake-Server läuft **in der Integration selbst**; Sensoren + Steuer-Services.
 
 > ⚠️ **Sicherheit:** Leistungen **< 150 W werden von der Box als „unbegrenzt" behandelt** (Batterie-Leerlauf-Gefahr!). Die Integration erzwingt daher eine Untergrenze von 150 W.
