@@ -63,11 +63,20 @@ class DynessHub:
         self.current: float | None = None
         self.soll: int | None = None
         self.power_out: int | None = None
+        # Temperatur-Kandidaten (experimentell; Skalierung wird live kalibriert)
+        self.temp1: int | None = None
+        self.temp2: int | None = None
         self.registers: dict[int, int | float] = {}
         # Zuletzt gesetzter Sollwert (Default: sichere 150 W / Lastpriorität).
         # Die Box hat kein Read-back — das ist der eigene Merkposten.
         self.power: int = MIN_POWER_W
+        # Zuletzt per Schedule (SetWorkModeSetting) gesetzter Modus.
         self.mode: int = MODE_LOAD
+        # ECHTER Basis-Modus (Register 0x1900, SetBaseSetting-Ebene, live aus
+        # der Telemetrie) — der einzig real lesbare Modus-Zustand. 0x1900 misst
+        # die Basis-Ebene, NICHT den Schedule (siehe Skill/HANDOFF).
+        self.base_mode: int | None = None
+        self.base_mode_at: str | None = None
         self.power_entity = None
         self.mode_entity = None
         # Diagnose: Frame-Statistik pro Register-Karten-Größe (Frame-Typ-Erkennung).

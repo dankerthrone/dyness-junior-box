@@ -1,4 +1,45 @@
-# Handoff — nächste Session: Dashboard-Aufräumen + Temperatur-Sensoren
+# Handoff — nächste Session
+
+## Stand 2026-11-05 — Parser-Härtung GEKNAPPT + Temperatur-Sensoren + Basis-Modus-Read-back (⇒ Release 2.0.0)
+
+**DURCHBRUCH (Härtung, datengetrieben, `tools/analyze_frame_geometry.py`):**
+Der Register-Grid ist **`[key: 4 Bytes][tag][Wert tag-abhängig]`** — NICHT
+`[key16][tag][4B]` (bisherige Annahme war falsch). Der alte Parser las den Key
+nur 2 Bytes → konstanter 2-Byte-Versatz; dazu `i += 1` bei unbekannten Tags →
+genau das Raster-Rutsch-Phänomen (115r/116r, 0x17D4=281 statt 167 W). Fix in
+`parser.py`: key32 + `_VALUE_WIDTH` (0x53=2B, 0x46/0x49/0x4C=4B) + **Auto-Grid-Starts-
+Scan (0..72)** (Header-Länge je Frame variiert; gemessen: 475B~+55, **1082B=+67,
+1088B=+69**). Nachweis an echten 1082B-Frames: SOC 12→13, Strom 4.1/6.2/2.9 A,
+Spannung 16.26–16.32 V, SOH 100 live geparst + je Länge **stabile** Register-Anzahl.
+Nebenbefunde:
+- **tcp_proxy-Logs sind für große Frames ABGESCHNITTEN** (Präfix-1082-Frame hat nur
+  ~688B auf Platte; das Label „688B" war das tcp_proxy-Byte-Label, NICHT die Payload-
+  Länge). Der Skill-Eintrag „frühere 398/404/688B-Frames erscheinen nicht beim HA-
+  Server" war eine FEHLLESUNG — es SIND die 1082/1088B-Frames (Präfix 0x43a/0x440).
+- **Temperatur:** 0x1AF4/0x1B58 als `Temperature 1/2` (DIAGNOSTIC, °C, experimentell)
+  eingebaut — Skalierung/Einheit OFFEN, live gegen SOC/Strom kalibrieren. Die Konstanten
+  65,0/−20,0 aus dem 1088er-Grid sind Platzhalter → NICHT als Temperatur.
+- **Basis-Modus-Read-back:** 0x1900 (SetBase-Ebene) ist in die Select-Entity integriert —
+  `current_option` zeigt ihn, wenn gelesen; neue Attribute `basis_modus*` + `zeitplan_*`
+  (Schedule ist weiter unlesbar → „zuletzt gesetzt"). Ebenen bewusst getrennt.
+- **Builder-Framing-Asymmetrie (für den AUS-Folgetermin wichtig):** `build_workmode`
+  sendet MIT 4B-Längen-Präfix (124B wire), **`build_shutdown` sendet OHNE Präfix**
+  (84B raw — wahrscheinlich ein realer Framing-Fehler!). Beim Re-Derivation des
+  „Aus"-Frames (App-Mitschnitt) den 4B-Präfix zwingend mit abzugleichen (echtes
+  App-Frame = 88B wire / 84B payload). NICHT still in Härdungssession geändert.
+- **Echte S/N ist in `WM_REST`/frames_gen gebacken** (`R07E8546681A0121`) — offener
+  Veröffentlichungs-Redaktionspunkt, Front-Serial wird aus Config ersetzt, die
+  eingebettete NICHT.
+
+**Als Nächstes (Reihenfolge):** (1) [AUS-Termin] User tippt in der App „Aus", Hermes
+hört auf MM-Relay mit → Frame + ACK analysieren, 4B-Präfix-Frage klären. (2) Live-
+Verifikation von Parser+Temp+Basis auf echtem HA (`last_updated` der Entities frisch),
+Scaling der Temp-Register kalibrieren. (3) Release 2.0.0 (Manifest-Bump + gh release)
+nach Live-Check.
+
+---
+
+## (älterer Stand) — bis 2026-11-01: Dashboard-Aufräumen + Temperatur-Sensoren
 
 Stand 2026-11-01 MITTAG — **v1.0.0 (Major!): Steuerung + Monitoring sind als bewiesen markiert.** Alle Sensoren live, Steuerung ent-cloudt (00-78 → Tasmota-Verifikation), Frame-Typen getrennt. **Heutige Durchbrüche:** (1) **Frame-Längen-Schlüssel:** echte Telemetrie-Frames sind 1082 B (115 Register: SOC/SOH/Spannung/Strom/0x17D4-Ausgang/CAPACITY…) und 1088 B (123 Register: Zellspannungen, SOC-Duplikate 0x36B0/0x3520, Temperaturen, 0x4588 128↔64). (2) **0x1770 enttarnt — KEIN Sollwert:** Bilanz-/Netto-Leistung, springt −244…+18 W bei FESTEM Soll 150/200 W (Wert folgt Writes NICHT); Plausibilitäts-Filter (150–800) schluckt den Megawatt-Unsinn (User-Befund „5-MW-Skala" = −169 W unsigned gelesen). (3) **Modus-Read-back nicht in der Telemetrie:** 0x1900 blieb bei Mode-17-Test 16 (4×1082er-Sichtungen); sichtbarer Modus-Unterschied ist real (Tasmota 134→323 W bei Mode 17/Last-Deckung→0,4 W), aber KEIN Register meldet ihn. → **v1.0.0-Ansatz: 91-78-ACK der Box = der einzige nachweisbare Read-back** (Attribut `box_bestaetigung` an Modus+Leistungsgrenze; Config-Report 91 71 wird ab sofort auch als Register best-effort gescannt — letzter möglicher Ort). (4) 0x17D4 = Ausgangsleistung VERIFIZIERT (Tasmota 323↔336 W synchron). (5) Tasmota misst STABILEN Box-Ausgang (14 Messungen: 133,6–136,0 W), Netto-Schwankungen sind Wetter/PV-bedingt (Batterie puffert; current +19 A…−1,6 A).
 

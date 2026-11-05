@@ -4,8 +4,12 @@ Dropdown/Drei-Buttons: Lastpriorität / Batteriepriorität / Aus (Shutdown).
 Jede Änderung schickt einen SetWorkModeSetting-Frame (00 78) mit der
 zuletzt gesetzten Leistungsgrenze an die Box.
 
-Achtung: Die Box hat kein Read-back — die Entität zeigt den ZULETZT
-GESETZTEN Modus, nicht den tatsächlich aktiven der Box.
+Read-back (2026-11-05): Der Zeitplan-Modus ist über das beobachtete Protokoll
+nicht lesbar. LESBAR ist allein der BASIS-Modus (Register 0x1900, die Ebene,
+die die App via SetBaseSetting schreibt). current_option zeigt den ECHTEN
+Basis-Modus, wenn er aus der Telemetrie vorliegt; sonst den ZULETZT GESETZTEN
+Schedule-Wert. Der Schedule-Sollwert liegt zusätzlich als Attribut
+`zeitplan_sollwert` / `zeitplan_code` vor — die Ebenen werden bewusst getrennt.
 """
 from __future__ import annotations
 
@@ -57,11 +61,26 @@ class DynessModeSelect(SelectEntity):
 
     @property
     def current_option(self) -> str | None:
+        # Echter Read-back, wenn möglich: der Basis-Modus (0x1900) ist der
+        # einzig real lesbare Modus-Zustand. Ohne 0x1900 (noch nicht gelesen)
+        # Fallback auf den zuletzt per Schedule gesetzten Wert.
+        if self._hub.base_mode is not None and self._hub.base_mode in MODE_OPTIONS:
+            return MODE_OPTIONS[self._hub.base_mode]
         return MODE_OPTIONS.get(self._hub.mode)
 
     @property
     def extra_state_attributes(self) -> dict:
-        return {"box_bestaetigung": self._hub.command_confirmed_at or "noch keine"}
+        return {
+            "box_bestaetigung": self._hub.command_confirmed_at or "noch keine",
+            # Echter Basis-Modus (0x1900, SetBase-Ebene): der einzige lesbare.
+            "basis_modus_lesbar": self._hub.base_mode is not None,
+            "basis_modus": self._hub.base_mode,
+            "basis_modus_zeit": self._hub.base_mode_at or "keine",
+            # Schedule (SetWorkModeSetting) — das, was unser Select/Service setzt;
+            # ist über das Protokoll NICHT lesbar, daher nur "zuletzt gesetzt".
+            "zeitplan_sollwert": MODE_OPTIONS.get(self._hub.mode),
+            "zeitplan_code": self._hub.mode,
+        }
 
     async def async_select_option(self, option: str) -> None:
         mode = {v: k for k, v in MODE_OPTIONS.items()}[option]

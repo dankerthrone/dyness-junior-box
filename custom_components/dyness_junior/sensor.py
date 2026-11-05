@@ -4,6 +4,7 @@ from __future__ import annotations
 import time
 
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.const import UnitOfTemperature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
@@ -16,6 +17,8 @@ from .const import (
     SENSOR_VOLTAGE,
     SENSOR_CURRENT,
     SENSOR_OUTPUT,
+    SENSOR_TEMP1,
+    SENSOR_TEMP2,
     MAX_POWER_W,
     MIN_POWER_W,
     DOMAIN,
@@ -31,6 +34,8 @@ _INTEREST_REGISTERS = {
     parser.CURRENT_REGISTER: "current",
     parser.LIMIT_REGISTER: "limit",
     parser.POWER_REGISTER: "power_out",
+    parser.TEMP1_REGISTER: "temp1",
+    parser.TEMP2_REGISTER: "temp2",
     0x1900: "0x1900",
     0x300C: "0x300c",
     0x36B0: "0x36b0",
@@ -53,7 +58,9 @@ async def async_setup_entry(
     volt = DynessVoltageSensor(hub)
     curr = DynessCurrentSensor(hub)
     outp = DynessOutputSensor(hub)
-    async_add_entities([fw, soc, soh, volt, curr, outp])
+    temp1 = DynessTemp1Sensor(hub)
+    temp2 = DynessTemp2Sensor(hub)
+    async_add_entities([fw, soc, soh, volt, curr, outp, temp1, temp2])
 
     def _on_report(info: dict) -> None:
         hub.firmware = info.get("firmware")
@@ -81,6 +88,18 @@ async def async_setup_entry(
             v = regs[parser.POWER_REGISTER]
             if 0 <= v <= 10000:
                 hub.power_out = v
+        # Temperatur-Kandidaten (experimentell — Skalierung wird live kalibriert)
+        if regs.get(parser.TEMP1_REGISTER) is not None:
+            hub.temp1 = regs[parser.TEMP1_REGISTER]
+        if regs.get(parser.TEMP2_REGISTER) is not None:
+            hub.temp2 = regs[parser.TEMP2_REGISTER]
+        # Echter Basis-Modus aus 0x1900 (SetBaseSetting-Ebene): der einzig real
+        # lesbare Modus. Bei Änderung die Select-Entity neu zeichnen.
+        if regs.get(0x1900) is not None and regs[0x1900] != hub.base_mode:
+            hub.base_mode = regs[0x1900]
+            hub.base_mode_at = time.strftime("%H:%M:%S")
+            if hub.mode_entity is not None:
+                hub.mode_entity.async_write_ha_state()
         # Frame-Statistik: welcher Frame-Typ (PAYLOAD-Länge + Karten-Größe) trägt
         # welche Interesse-Register — Grundlage für Modus-Read-back. Erkenntnis
         # 2026-11-01: 0x1770 ist NICHT frame-stabil (negativer Wert = Einspeisung/
@@ -98,7 +117,7 @@ async def async_setup_entry(
             stats["limit_hist"].append(regs[parser.LIMIT_REGISTER])
             stats["limit_hist"] = stats["limit_hist"][-4:]
         # Attribute (Roh-Register) auch aktualisieren, wenn keine SOC-Register dabei war
-        for ent in (soc, soh, volt, curr, outp):
+        for ent in (soc, soh, volt, curr, outp, temp1, temp2):
             ent.async_write_ha_state()
 
     hub.server.on_report = _on_report
@@ -225,3 +244,44 @@ class DynessOutputSensor(DynessSensorBase):
     @property
     def native_value(self) -> int | None:
         return self._hub.power_out
+
+
+class _DynessTempBase(DynessSensorBase):
+    """Basis für die experimentellen Temperatur-Sensoren.
+
+    Register 0x1AF4/0x1B58 steigen bei Entladung (beobachtet); es ist NICHT
+    klar, ob der Wert direkt Grad Celsius ist oder eine Skalierung braucht.
+    Deshalb experimentell: Die Einheit/Skalierung wird in der Live-Sitzung
+    (gegen SOC/Strom-Korrelation) kalibriert. Die konstanten 65,0/−20,0-Werte
+    aus dem 1088er-Raster sind Platzhalter und kommen NICHT als Temperatur rein.
+    """
+
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_suggested_display_precision = 1
+    _attr_icon = "mdi:thermometer"
+
+
+class DynessTemp1Sensor(_DynessTempBase):
+    _attr_name = SENSOR_TEMP1
+
+    def __init__(self, hub) -> None:
+        super().__init__(hub)
+        self._attr_unique_id = f"{hub.unique_id}_temp1"
+
+    @property
+    def native_value(self) -> int | None:
+        return self._hub.temp1
+
+
+class DynessTemp2Sensor(_DynessTempBase):
+    _attr_name = SENSOR_TEMP2
+
+    def __init__(self, hub) -> None:
+        super().__init__(hub)
+        self._attr_unique_id = f"{hub.unique_id}_temp2"
+
+    @property
+    def native_value(self) -> int | None:
+        return self._hub.temp2
