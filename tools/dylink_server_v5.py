@@ -5,7 +5,7 @@ import socket
 import time
 
 LOG = "/tmp/dylink_capture.log"
-SN = b"R07E8546681A0121"
+SN = b"R0000000000000000"
 
 def log(msg):
     with open(LOG, "a") as f:

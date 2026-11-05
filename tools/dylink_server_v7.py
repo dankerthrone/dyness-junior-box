@@ -7,7 +7,7 @@ import socket
 import time
 
 LOG = "/tmp/dylink_v7.log"
-SN = b"R07E8546681A0121"
+SN = b"R0000000000000000"
 
 def log(m):
     with open(LOG, "a") as f:

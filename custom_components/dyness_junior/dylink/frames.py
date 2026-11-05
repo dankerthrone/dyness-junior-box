@@ -52,9 +52,12 @@ def build_dod(serial: str, dod_pct: int) -> bytes:
 # 0x1964=Leistungsgrenze, 0x19C8=Entladetiefe. SetWorkMode-255 (`20 d0 49 ff`)
 # ist WIRKUNGSLOS (bewiesen 02.11.) — nur dieser SetBaseSetting-Typ schaltet
 # (potenziell) ab.
+# Die SN-Positionen (1 und 24) sind hier PLATZHALTER-null; build_shutdown()
+# fuellt sie zur Laufzeit aus der HA-Config. KEINE echte Geraete-S/N im Repo
+# (public; Datenschutz-Redaktion 2026-11-05).
 _SHUTDOWN_TEMPLATE = bytes.fromhex(
-    "1052303738373536343638314130313231"
-    "007836b200021052303738373536343638314130313231"
+    "1000000000000000000000000000000000"
+    "007836b200021000000000000000000000000000000000"
     "014a0ca97cb7a87000000000030000190049ff0000000000"
     "196449c8000000000019c8495000000000000000"
 )

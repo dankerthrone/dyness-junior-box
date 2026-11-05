@@ -6,7 +6,7 @@ import socket
 import time
 
 IP = "8.211.25.186"
-SN = b"R07E8546681A0121"
+SN = b"R0000000000000000"
 
 def frame(payload):
     return len(payload).to_bytes(4, "big") + payload

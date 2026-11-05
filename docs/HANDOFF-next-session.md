@@ -1,6 +1,6 @@
 # Handoff — nächste Session
 
-## Stand 2026-11-05 — Parser-Härtung GEKNAPPT + Temperatur-Sensoren + Basis-Modus-Read-back (⇒ Release 2.0.0)
+## Stand 2026-11-05 — Parser-Härtung GEKNAPPT + Temperatur-Sensoren + Basis-Modus-Read-back (⇒ Release 1.5.0)
 
 **DURCHBRUCH (Härtung, datengetrieben, `tools/analyze_frame_geometry.py`):**
 Der Register-Grid ist **`[key: 4 Bytes][tag][Wert tag-abhängig]`** — NICHT
@@ -27,7 +27,7 @@ Nebenbefunde:
   (84B raw — wahrscheinlich ein realer Framing-Fehler!). Beim Re-Derivation des
   „Aus"-Frames (App-Mitschnitt) den 4B-Präfix zwingend mit abzugleichen (echtes
   App-Frame = 88B wire / 84B payload). NICHT still in Härdungssession geändert.
-- **Echte S/N ist in `WM_REST`/frames_gen gebacken** (`R07E8546681A0121`) — offener
+- **Echte S/N ist in `WM_REST`/frames_gen gebacken** (`R0000000000000000`) — offener
   Veröffentlichungs-Redaktionspunkt, Front-Serial wird aus Config ersetzt, die
   eingebettete NICHT.
 

@@ -5,7 +5,7 @@
   square: true
   cards:
   - type: gauge
-    entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_soc
+    entity: sensor.balkon_dyness_junior_box_r0000000000000000_soc
     name: Akku (SOC)
     min: 0
     max: 100
@@ -15,7 +15,7 @@
       yellow: 15
       red: 5
   - type: gauge
-    entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_ausgangsleistung
+    entity: sensor.balkon_dyness_junior_box_r0000000000000000_ausgangsleistung
     name: Ausgang
     min: 0
     max: 800
@@ -27,15 +27,15 @@
 - type: markdown
   content: '**Modus (Box):**
 
-    {% set ack = state_attr("select.balkon_dyness_junior_box_r07e8546681a0121_modus",
+    {% set ack = state_attr("select.balkon_dyness_junior_box_r0000000000000000_modus",
     "box_bestaetigung") %}
 
-    {% set regs = state_attr("sensor.balkon_dyness_junior_box_r07e8546681a0121_soc",
+    {% set regs = state_attr("sensor.balkon_dyness_junior_box_r0000000000000000_soc",
     "register") %}
 
     {% set base = regs.get("0x1900") if regs else none %}
 
-    * **Steuerung (Zeitplan):** {{ states("select.balkon_dyness_junior_box_r07e8546681a0121_modus")
+    * **Steuerung (Zeitplan):** {{ states("select.balkon_dyness_junior_box_r0000000000000000_modus")
     }}{% if ack %} — von der Box bestätigt {{ ack }}{% endif %}
 
     * **Basis-Modus (Box-Register 0x1900):** {% if base == 16 %}Lastpriorität{% elif
@@ -47,23 +47,23 @@
   content: '**Messwerte** (Gerät sendet alle ~4–5 min)
 
 
-    * **Akku SOC:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_soc")
-    }} % — Stand vor {{ (now().timestamp() - as_timestamp(states.sensor.balkon_dyness_junior_box_r07e8546681a0121_soc.last_updated))
+    * **Akku SOC:** {{ states("sensor.balkon_dyness_junior_box_r0000000000000000_soc")
+    }} % — Stand vor {{ (now().timestamp() - as_timestamp(states.sensor.balkon_dyness_junior_box_r0000000000000000_soc.last_updated))
     | round(0) }} s
 
-    * **Spannung:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_spannung")
-    }} V · **Strom:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_strom")
+    * **Spannung:** {{ states("sensor.balkon_dyness_junior_box_r0000000000000000_spannung")
+    }} V · **Strom:** {{ states("sensor.balkon_dyness_junior_box_r0000000000000000_strom")
     }} A (negativ = Entladen)
 
-    * **Batterie-Gesundheit:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_soh")
-    }} % · **Ausgang:** {{ states("sensor.balkon_dyness_junior_box_r07e8546681a0121_ausgangsleistung")
+    * **Batterie-Gesundheit:** {{ states("sensor.balkon_dyness_junior_box_r0000000000000000_soh")
+    }} % · **Ausgang:** {{ states("sensor.balkon_dyness_junior_box_r0000000000000000_ausgangsleistung")
     }} W
 
     '
 - type: entities
   title: Leistungsgrenze
   entities:
-  - entity: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+  - entity: number.balkon_dyness_junior_box_r0000000000000000_leistungsgrenze
     name: Leistungsgrenze (klicken = Zahl 150–800)
 - type: grid
   columns: 5
@@ -75,7 +75,7 @@
       action: perform-action
       perform_action: number.set_value
       target:
-        entity_id: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+        entity_id: number.balkon_dyness_junior_box_r0000000000000000_leistungsgrenze
       data:
         value: 150
   - type: button
@@ -84,7 +84,7 @@
       action: perform-action
       perform_action: number.set_value
       target:
-        entity_id: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+        entity_id: number.balkon_dyness_junior_box_r0000000000000000_leistungsgrenze
       data:
         value: 200
   - type: button
@@ -93,7 +93,7 @@
       action: perform-action
       perform_action: number.set_value
       target:
-        entity_id: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+        entity_id: number.balkon_dyness_junior_box_r0000000000000000_leistungsgrenze
       data:
         value: 300
   - type: button
@@ -102,7 +102,7 @@
       action: perform-action
       perform_action: number.set_value
       target:
-        entity_id: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+        entity_id: number.balkon_dyness_junior_box_r0000000000000000_leistungsgrenze
       data:
         value: 500
   - type: button
@@ -111,7 +111,7 @@
       action: perform-action
       perform_action: number.set_value
       target:
-        entity_id: number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze
+        entity_id: number.balkon_dyness_junior_box_r0000000000000000_leistungsgrenze
       data:
         value: 800
 - type: grid
@@ -121,7 +121,7 @@
   - type: conditional
     conditions:
     - condition: template
-      value_template: '{{ is_state(''select.balkon_dyness_junior_box_r07e8546681a0121_modus'',
+      value_template: '{{ is_state(''select.balkon_dyness_junior_box_r0000000000000000_modus'',
         ''Lastpriorität'') }}'
     card:
       type: button
@@ -134,7 +134,7 @@
         action: perform-action
         perform_action: select.select_option
         target:
-          entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+          entity_id: select.balkon_dyness_junior_box_r0000000000000000_modus
         data:
           option: Lastpriorität
   - type: conditional
@@ -142,7 +142,7 @@
     - condition: not
       conditions:
       - condition: template
-        value_template: '{{ is_state(''select.balkon_dyness_junior_box_r07e8546681a0121_modus'',
+        value_template: '{{ is_state(''select.balkon_dyness_junior_box_r0000000000000000_modus'',
           ''Lastpriorität'') }}'
     card:
       type: button
@@ -152,13 +152,13 @@
         action: perform-action
         perform_action: select.select_option
         target:
-          entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+          entity_id: select.balkon_dyness_junior_box_r0000000000000000_modus
         data:
           option: Lastpriorität
   - type: conditional
     conditions:
     - condition: template
-      value_template: '{{ is_state(''select.balkon_dyness_junior_box_r07e8546681a0121_modus'',
+      value_template: '{{ is_state(''select.balkon_dyness_junior_box_r0000000000000000_modus'',
         ''Batteriepriorität'') }}'
     card:
       type: button
@@ -171,7 +171,7 @@
         action: perform-action
         perform_action: select.select_option
         target:
-          entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+          entity_id: select.balkon_dyness_junior_box_r0000000000000000_modus
         data:
           option: Batteriepriorität
   - type: conditional
@@ -179,7 +179,7 @@
     - condition: not
       conditions:
       - condition: template
-        value_template: '{{ is_state(''select.balkon_dyness_junior_box_r07e8546681a0121_modus'',
+        value_template: '{{ is_state(''select.balkon_dyness_junior_box_r0000000000000000_modus'',
           ''Batteriepriorität'') }}'
     card:
       type: button
@@ -189,13 +189,13 @@
         action: perform-action
         perform_action: select.select_option
         target:
-          entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+          entity_id: select.balkon_dyness_junior_box_r0000000000000000_modus
         data:
           option: Batteriepriorität
   - type: conditional
     conditions:
     - condition: template
-      value_template: '{{ is_state(''select.balkon_dyness_junior_box_r07e8546681a0121_modus'',
+      value_template: '{{ is_state(''select.balkon_dyness_junior_box_r0000000000000000_modus'',
         ''Aus (Shutdown)'') }}'
     card:
       type: button
@@ -208,7 +208,7 @@
         action: perform-action
         perform_action: select.select_option
         target:
-          entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+          entity_id: select.balkon_dyness_junior_box_r0000000000000000_modus
         data:
           option: Aus (Shutdown)
   - type: conditional
@@ -216,7 +216,7 @@
     - condition: not
       conditions:
       - condition: template
-        value_template: '{{ is_state(''select.balkon_dyness_junior_box_r07e8546681a0121_modus'',
+        value_template: '{{ is_state(''select.balkon_dyness_junior_box_r0000000000000000_modus'',
           ''Aus (Shutdown)'') }}'
     card:
       type: button
@@ -226,7 +226,7 @@
         action: perform-action
         perform_action: select.select_option
         target:
-          entity_id: select.balkon_dyness_junior_box_r07e8546681a0121_modus
+          entity_id: select.balkon_dyness_junior_box_r0000000000000000_modus
         data:
           option: Aus (Shutdown)
   - type: button
@@ -240,9 +240,9 @@
 - type: entities
   title: Diagnose
   entities:
-  - entity: binary_sensor.dyness_junior_box_r07e8546681a0121_verbindung
+  - entity: binary_sensor.dyness_junior_box_r0000000000000000_verbindung
     name: Verbindung (Box ↔ HA)
-  - entity: sensor.balkon_dyness_junior_box_r07e8546681a0121_firmware
+  - entity: sensor.balkon_dyness_junior_box_r0000000000000000_firmware
     name: Firmware
   - entity: update.dyness_junior_box_local_update
     name: Integration-Update

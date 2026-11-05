@@ -76,9 +76,9 @@ Referenz-Instanz (2026-10-31):
 
 | Anzeige     | Entität (auf der Referenz-Instanz)                              |
 |-------------|-----------------------------------------------------------------|
-| Verbindung  | `binary_sensor.dyness_junior_box_r07e8546681a0121_verbindung`   |
-| Modus       | `select.balkon_dyness_junior_box_r07e8546681a0121_modus`        |
-| Leistung    | `number.balkon_dyness_junior_box_r07e8546681a0121_leistungsgrenze` |
+| Verbindung  | `binary_sensor.dyness_junior_box_r0000000000000000_verbindung`   |
+| Modus       | `select.balkon_dyness_junior_box_r0000000000000000_modus`        |
+| Leistung    | `number.balkon_dyness_junior_box_r0000000000000000_leistungsgrenze` |
 
 SOC-/Firmware-Sensoren sind noch NICHT registriert (Sensor-Plattform —
 folgt mit der Telemetrie-Dekodierung; offener Punkt). Falls eine Karte
