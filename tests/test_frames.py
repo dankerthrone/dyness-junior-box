@@ -47,15 +47,20 @@ def test_workmode_mode_variants():
 
 def test_shutdown_frame_length_sn_positions():
     f = frames.build_shutdown(TEST_SERIAL, power_w=200, dod_pct=80)
-    assert len(f) == 84  # raw 84-B payload, no length prefix (see module docstring)
-    assert f[0] == 0x10
+    # Wire = 4B Längen-Präfix + 84B Payload (wie der echte App-Frame 88B wire /
+    # 84B payload; App-Mitschnitt 2026-11-05). Die Box ACKt NUR den präfixierten
+    # Frame mit 91 78 — der frühere unprefizierte build_shutdown kam nie an.
+    assert len(f) == 88
+    assert f[:4] == (84).to_bytes(4, "big")
+    body = f[4:]
+    assert body[0] == 0x10
     sn_bytes = TEST_SERIAL.encode("ascii")
-    assert f[1:17] == sn_bytes
-    assert f[24:40] == sn_bytes
-    off_p = f.find(b"\x19\x64\x49")
-    assert off_p >= 0 and f[off_p + 3] == 200 & 0xFF
-    off_d = f.find(b"\x19\xc8\x49")
-    assert off_d >= 0 and f[off_d + 3] == 80 & 0xFF
+    assert body[1:17] == sn_bytes
+    assert body[24:40] == sn_bytes
+    off_p = body.find(b"\x19\x64\x49")
+    assert off_p >= 0 and body[off_p + 3] == 200 & 0xFF
+    off_d = body.find(b"\x19\xc8\x49")
+    assert off_d >= 0 and body[off_d + 3] == 80 & 0xFF
 
 
 def test_shutdown_rejects_non_16_byte_serial():

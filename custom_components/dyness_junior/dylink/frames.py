@@ -66,15 +66,22 @@ _SHUTDOWN_SN_POS = (1, 24)
 
 
 def build_shutdown(serial: str, power_w: int = 200, dod_pct: int = 80) -> bytes:
-    """'Aus/Shutdown' — byte-genau aus dem App-Mitschnitt (2026-11-02, 84 B).
+    """'Aus/Shutdown' — byte-genau aus dem App-Mitschnitt (2026-11-02, 84-B-Payload).
 
-    00 78 36 b2 00 02 10 <SN> 01 4a 0c a9 7c b7 a8 70 00 00 00 03 00 00
+    WICHTIG (App-Mitschnitt 2026-11-05, relay_shutdown2.log): Die echte App/
+    Cloud sendet diesen SetBaseSetting-Frame MIT 4-Byte-Längen-Präfix (88-B-Wire/
+    84-B-Payload). Die Box ACKt ihn dann mit `91 78`. Der frühere build_shutdown
+    lieferte das Payload OHNE Präfix -> die Box konnte den Frame nie parsen
+    (kein ACK, keine Wirkung) — das war vermutlich der Grund, warum „Aus" bisher
+    als wirkungslos galt. Wire-Format jetzt identisch zum Original.
+
+    Frame (84-B-Payload): 10 <SN> 00 78 36 b2 00 02 10 <SN>
+      01 4a 0c a9 7c b7 a8 70 00 00 00 03 00 00
       19 00 49 ff | 19 64 49 <power> | 19 c8 49 <dod>   (SetBaseSetting-Raster)
-
     0x1900 = workMode (ff = Shutdown), 0x1964 = Leistungsgrenze W,
-    0x19C8 = Entladetiefe %. SN wird an beiden Feldpositionen ersetzt;
-    power/dod per Zwischenschritt an den 0x19xx-49-Stellen (find-basiert).
-    Quelle: ~/dyness-probe/relay_shutdown_app_frame.log
+    0x19C8 = Entladetiefe %. SN an beiden Feldpositionen; power/dod per
+    find-basiertem Patch an den 0x19xx-49-Stellen.
+    Quelle: ~/dyness-probe/relay_shutdown2.log (echter App-Stop 10:23:14)
     """
     sn = serial_bytes(serial)
     if len(sn) != 16:
@@ -93,8 +100,10 @@ def build_shutdown(serial: str, power_w: int = 200, dod_pct: int = 80) -> bytes:
     off = _shutdown.find(b"\x19\xc8\x49")
     if off >= 0:
         _shutdown[off + 3] = dod_pct & 0xFF
-    assert len(_shutdown) == 84, f"Shutdown-Frame: {len(_shutdown)} B statt 84"
-    return bytes(_shutdown)
+    body = bytes(_shutdown)
+    assert len(body) == 84, f"Shutdown-Payload: {len(body)} B statt 84"
+    # Wire = 4-Byte-Längen-Präfix + Payload (wie der echte Cloud-Server sendet)
+    return len(body).to_bytes(4, "big") + body
 
 
 BANNER = g.BANNER
