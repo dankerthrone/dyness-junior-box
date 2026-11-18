@@ -109,10 +109,41 @@ def ack_cfgrep(serial: bytes) -> bytes:
     return build(serial, b"\\x99\\x71\\x01")
 
 def bind_ack(serial: bytes, token: bytes) -> bytes:
-    return build(serial, b"\\x91\\x22\\x00\\x00\\x01\\xa1\\x91" + token)
+    # 0xa1 0x93 wie der echte Server (nicht 0xa1 0x91) — gemessen 2026-10-31.
+    # (Die 1.5.0-Regeneration hatte hier faelschlich 0x91; Box tolerierte es 13
+    # Tage, aber Originaltreue gilt.)
+    return build(serial, b"\\x91\\x22\\x00\\x00\\x01\\xa1\\x93" + token)
 
 def time_push(serial: bytes) -> bytes:
-    return build(serial, b"\\x00\\x77\\x00\\x00\\x12\\xf8\\x13\\xa0\\x0a\\x01\\x08\\x02\\x00\\x08\\x00\\x02\\x09\\x1f\\x0a\\x1a\\x06\\x01\\x1c\\x04\\xd0\\x0d")
+    """Zeitsync im echten Server-Format (gemessen 2026-10-31 per Relay).
+
+    Format: 00 77 00 00 12 f8 13 a0 0a 01 08 02 00 08 <sek> <min> 15 1f 0a 1a 06 01 <rand2> d0 0d
+    <sek>/<min> DYNAMISCH aus der lokalen Uhr — ein statischer Zeitsync laesst
+    die Box die Session nicht abschliessen (v0.1.8-Fix; die 1.5.0-Regeneration
+    hatte ihn faelschlich eingefroren).
+    """
+    import os
+    import time as _time
+
+    now = _time.localtime()
+    extra = os.urandom(2)
+    return build(
+        serial,
+        b"\\x00\\x77\\x00\\x00\\x12\\xf8\\x13\\xa0\\x0a\\x01\\x08\\x02\\x00\\x08"
+        + bytes([now.tm_sec, now.tm_min])
+        + b"\\x15\\x1f\\x0a\\x1a\\x06\\x01"
+        + extra
+        + b"\\xd0\\x0d",
+    )
+
+def static_39(serial: bytes) -> bytes:
+    """Statische 39-B-Meldung des echten Servers (Mitschnitt 2026-10-31).
+
+    Der echte Server sendet dieses Frame bei jeder Session mehrfach (~alle 5 s).
+    Bytes konstant, keine S/N. (In der 1.5.0-Regeneration verloren gegangen —
+    der Pusher-Task starb seither bei jeder Session mit AttributeError.)
+    """
+    return build(serial, bytes.fromhex("0077000013030ba00a010c010000915ed00d"))
 
 def _inject_sn(rest_buf: bytearray, serial: bytes, offsets) -> None:
     for oi in (offsets or []):
