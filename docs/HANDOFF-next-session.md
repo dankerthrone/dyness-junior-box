@@ -1,5 +1,7 @@
 # Handoff — nächste Session
 
+> ⚠️ **Dieses Dokument ist ein historischer Snapshot (05.11.).** Der jeweils aktuelle Tagesstand steht im **Worklog** (`~/WORKLOG.md` + Joplin-Spiegel), die Protokoll-Referenz für Contributors in **`docs/REVERSE-ENGINEERING.md`**. Neueste Meilensteine NACH dem 05.11.: **Aus-Knopf funktioniert end-to-end (18.11., 1.5.1 — präfixierter Shutdown-Frame, ACK + 133 W → 0,4 W verifiziert)**; „spontane Abend-Einspeisung" aufgeklärt (= Modus-17-Lastdeckung bei Nacht, kein Bug); **1.5.2** repariert drei 1.5.0-Regressionen der frames_gen-Neu-Generierung (static_39 / dynamischer Zeitsync / bind_ack a1 93).
+
 ## Stand 2026-11-05 — Parser-Härtung GEKNAPPT + Temperatur-Sensoren + Basis-Modus-Read-back (⇒ Release 1.5.0)
 
 **DURCHBRUCH (Härtung, datengetrieben, `tools/analyze_frame_geometry.py`):**
