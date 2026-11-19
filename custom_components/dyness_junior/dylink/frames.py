@@ -65,6 +65,40 @@ _SHUTDOWN_TEMPLATE = bytes.fromhex(
 _SHUTDOWN_SN_POS = (1, 24)
 
 
+def build_setbase(
+    serial: str, work_mode: int = 0x10, power_w: int = 150, dod_pct: int = 95
+) -> bytes:
+    """SetBaseSetting-Raster (84-B-Payload) mit beliebigem workMode.
+
+    Identische Struktur wie build_shutdown(), aber workMode ist parametrisierbar
+    (0x10 = Lastpriorität, 0xff = Shutdown). Damit ist DOD (0x19C8) in EINEM
+    konsistenten Frame mit dem Entlademodus kombinierbar — der eingebaute
+    Vorteil gegenüber Schedule-Write (build_workmode), der kein DOD-Feld trägt
+    und von der Box als aktiver Zeitplan die Basis-Entladetiefe übersteuert.
+    """
+    sn = serial_bytes(serial)
+    if len(sn) != 16:
+        raise ValueError(
+            f"SetBase frame requires a 16-byte serial, got {len(sn)} bytes "
+            f"({serial!r}). Callers must validate length before calling."
+        )
+    buf = bytearray(_SHUTDOWN_TEMPLATE)
+    for pos in _SHUTDOWN_SN_POS:
+        buf[pos:pos + 16] = sn
+    off = buf.find(b"\x19\x00\x49")  # workMode (0x1900)
+    if off >= 0:
+        buf[off + 3] = work_mode & 0xFF
+    off = buf.find(b"\x19\x64\x49")  # Leistungsgrenze (0x1964)
+    if off >= 0:
+        buf[off + 3] = power_w & 0xFF
+    off = buf.find(b"\x19\xc8\x49")  # Entladetiefe (0x19C8)
+    if off >= 0:
+        buf[off + 3] = dod_pct & 0xFF
+    body = bytes(buf)
+    assert len(body) == 84, f"SetBase-Payload: {len(body)} B statt 84"
+    return len(body).to_bytes(4, "big") + body
+
+
 def build_shutdown(serial: str, power_w: int = 200, dod_pct: int = 80) -> bytes:
     """'Aus/Shutdown' — byte-genau aus dem App-Mitschnitt (2026-11-02, 84-B-Payload).
 
