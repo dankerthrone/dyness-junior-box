@@ -40,6 +40,12 @@ Manueller Weg: `docs/HA-Dashboard.md`.
 | `dyness_junior.set_workmode` | Leistungslimit + Prioritätsmodus | `power` (150–800 W), `mode` (16=Last-, 17=Batterieprio, 255=Aus) |
 | `dyness_junior.set_dod` | Entladetiefe | `dod` (0–100 %) |
 
+> ⚠️ **Entladetiefe (DoD) wirkt nicht immer:** Die Box entlädt unter die alte
+> ~20-%-Schwelle **nur**, wenn (1) ein DoD > ~80 % gesetzt ist **und** (2) während der
+> Entladung **kein Zeitplan/Schedule** (Modus-Write über `set_workmode`) aktiv ist — ein
+> aktiver Schedule übersteuert die Basis-Entladetiefe. Bei 150-W-Lastpriorität ohne greifendes
+> DoD bleibt der Akku trotz des Sollwerts bei ~20 % stehen (Batteriestrom 0).
+
 ## Status
 
 - ✔ Lokale Steuerung (Leistung/Modus/DOD/**Aus**) — an echter Hardware verifiziert
